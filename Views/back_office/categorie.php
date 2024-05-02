@@ -4,46 +4,85 @@ require_once __DIR__ . '../../../Controls/job_management/categoryC.php';
 
 // Include the controller file
 $catController = new categoryController();
-
+session_start();
 // Handle form submissions
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($_POST["action"] == "add") {
-        // Add new job
+        // Add new category
         $name = $_POST["name_category"];
         $description = $_POST["description_category"];
-        $category_id=$catController ->generateCategoryId(7);
-        // Only echo the result if the job creation is successful
-        $result = $catController ->createCategory($category_id , $name , $description);
-        if ($result !== false) {
-            // Redirect to prevent form resubmission
+        $category_id = $catController->generateCategoryId(7);
+        
+        // Only echo the result if the category creation is successful
+        $result = $catController->createCategory($category_id, $name, $description);
+        if ($result !== "New category created successfully") {
+            $_SESSION["error_message"] = $result; // Store error message in session variable
+        } else {
+            // Redirect using GET to prevent form resubmission
             header("Location: {$_SERVER['REQUEST_URI']}");
             exit;
         }
     } elseif ($_POST["action"] == "update") {
-        // Update existing job
+        // Update existing category
         $category_id = $_POST["category_id"];
         $name = $_POST["category_name"];
         $description = $_POST["category_description"];
 
-        // Only echo the result if the job update is successful
-        $result = $catController->updatecategory($category_id , $name, $description);
-        if ($result !== false) {
-            // Redirect to prevent form resubmission
+        // Only echo the result if the category update is successful
+        $result = $catController->updateCategory($category_id, $name, $description);
+        if ($result !== "Category updated successfully") {
+            $_SESSION["update_error_message"] = $result; // Store error message in session variable
+        } else {
+            // Redirect using GET to prevent form resubmission
             header("Location: {$_SERVER['REQUEST_URI']}");
             exit;
         }
-    } elseif ($_POST["action"] == "delete" && isset($_POST["category_id"])) {
-        // Delete job
+    }elseif ($_POST["action"] == "delete" && isset($_POST["category_id"])) {
+        // Delete category
         $category_id = $_POST["category_id"];
         $deleted = $catController->deletecategory($category_id);
-        if ($deleted) {
-            echo "category deleted successfully.";
+        if ($deleted === "Job deleted successfully") {
+            // Redirect using GET to prevent form resubmission
+            header("Location: {$_SERVER['REQUEST_URI']}");
+            exit;
         } else {
-            echo "Error deleting category.";
+            $_SESSION["error_message"] = "Error deleting category."; // Store error message in session variable
         }
     }
-}
+    
 
+}
+// Display error message if it exists
+if (isset($_SESSION["error_message"])) {
+    echo '<script>
+            document.addEventListener("DOMContentLoaded", function() {
+                var errorMessageSpan = document.createElement("span");
+                errorMessageSpan.innerText = "' . $_SESSION["error_message"] . '";
+                errorMessageSpan.classList.add("text-danger", "text-center"); // Add text-center class
+                errorMessageSpan.style.display = "block"; // Ensure the span is displayed as a block element
+                errorMessageSpan.style.marginTop = "10px"; // Add top margin for spacing
+                document.getElementById("addCategoryForm").appendChild(errorMessageSpan);
+                
+                // Remove the error message after 1 seconds
+                setTimeout(function() {
+                    errorMessageSpan.remove();
+                }, 2000);
+            });
+          </script>';
+
+    unset($_SESSION["error_message"]); // Clear session variable after displaying error message
+}
+// Display error message if it exists for update form
+if (isset($_SESSION["update_error_message"])) {
+    echo '<script>
+    // Remove the alert after 5 seconds
+    setTimeout(function() {
+        alert("'.$_SESSION["update_error_message"].'");
+    }, 1000);
+  </script>';
+
+    unset($_SESSION["update_error_message"]); // Clear session variable after displaying error message
+}
 // Fetch all jobs
 $categorys = $catController->getCategory();
 
@@ -242,10 +281,12 @@ $categorys = $catController->getCategory();
                                     <span id="update_name_category_error" class="text-danger"></span> <!-- Error message placeholder -->
                                 </div>
                                 <div class="mb-3">
-                                    <label for="update_description_category" class="form-label">description *</label>
-                                    <input type="text" class="form-control" id="update_description_category" name="category_description" placeholder="Enter description category" >
+                                    <label for="update_description_category" class="form-label">Description *</label>
+                                    <input type="text" class="form-control" id="update_description_category" name="category_description" placeholder="Enter description">
                                     <span id="update_description_category_error" class="text-danger"></span> <!-- Error message placeholder -->
+
                                 </div>
+                                
                                 
                                 <button type="submit" class="btn btn-primary" id="updateJobBtn">Update category</button>
                                 <button type="button" class="btn btn-secondary cancel-btn" id="cancelUpdateBtn">Cancel</button>
@@ -263,7 +304,16 @@ $categorys = $catController->getCategory();
             <div class="container-fluid">
                 <div class="card">
                     <div class="card-body">                        
-                        <!-- Table for displaying existing jobs -->
+                        <div class="row">
+                            <div class="col-md-6 ">
+                                <a class="btn btn-primary" href="./job_management.php"><i class="ti ti-pin text-white"></i>Job Management</a>
+                            </div>
+                            <div class="col-md-6">
+                                <form class="d-flex">
+                                    <input class="form-control me-2" type="search" placeholder="Search Category" aria-label="Search" id="searchInput">
+                                </form>
+                            </div>
+                        </div>
                         <div class="table-responsive">
                             <!-- Table for displaying existing jobs -->
                             <table class="table text-nowrap mb-0 align-middle" id="jobs-table">
@@ -320,7 +370,31 @@ $categorys = $catController->getCategory();
     <script src="./assets/libs/simplebar/dist/simplebar.js"></script>
     <script src="./assets/js/finition.js"></script>
 
+    <script>
+    // Get the input field
+    var input = document.getElementById("searchInput");
 
+    // Add an event listener to detect input changes
+    input.addEventListener("input", function() {
+        var filter, table, tr, td, i, txtValue;
+        filter = input.value.toUpperCase();
+        table = document.getElementById("jobs-table");
+        tr = table.getElementsByTagName("tr");
+
+        // Loop through all table rows, and hide those who don't match the search query
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[1]; // Change the index if the column for job title is different
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    });
+</script>
     <!-- pop up JS -->
     <script>
         
@@ -388,149 +462,69 @@ $categorys = $catController->getCategory();
     <!-- add JS -->
 
     <script>
-        /*
-        document.getElementById("addJobForm").addEventListener("submit", function(event) {
+        document.getElementById("addCategoryForm").addEventListener("submit", function(event) {
             // Reset previous error messages
-            document.getElementById("job_title_error").textContent = ""; // Reset error message for job title
-            document.getElementById("job_company_error").textContent = ""; // Reset error message for company
-            document.getElementById("job_location_error").textContent = ""; // Reset error message for location
-            document.getElementById("job_desc_error").textContent = ""; // Reset error message for description
-            document.getElementById("job_salary_error").textContent = ""; // Reset error message for salary
+            document.getElementById("description_category_error").textContent = ""; // Reset error message for description
+            document.getElementById("name_category_error").textContent = ""; // Reset error message for name_category
 
             // Get input values
-            var jobTitle = document.getElementById("job_title").value.trim();
-            var company = document.getElementById("company").value.trim();
-            var location = document.getElementById("location").value.trim();
-            var description = document.getElementById("description").value.trim();
-            var salary = document.getElementById("salary").value.trim();
+            var description = document.getElementById("description_category").value.trim();
+            var name = document.getElementById("name_category").value.trim();
 
             // Variable to store the common error message
             var errorMessage = "";
 
-  
-
-            // Validate job title (characters only)
-            if (!/^[a-zA-Z\s]+$/.test(jobTitle)) {
-                errorMessage = "Job title must contain only characters."; // Set common error message
-                displayError("job_title_error", errorMessage, true); // Display error message
-            }
-
-            // Check if salary is not empty and contains only numbers
-            if (!/^\d+(\.\d+)?$/.test(salary)) {
-                errorMessage = "Salary must be a number."; // Set common error message
-                displayError("job_salary_error", errorMessage, true); // Display error message
+            // Validate name_category (characters only)
+            if (!/^[a-zA-Z\s]+$/.test(name)) {
+                errorMessage = "Name category must contain only characters."; // Set common error message
+                displayError("name_category_error", errorMessage, true); // Display error message
             }
 
             // Check if any input field is empty
-            if (jobId === "") {
-                errorMessage = "Job ID is required."; // Set common error message
-                displayError("job_id_error", errorMessage, true); // Display error message
-            }
-
-            // Check if any input field is empty
-            if (jobTitle === "") {
-                errorMessage = "Job title is required."; // Set common error message
-                displayError("job_title_error", errorMessage, true); // Display error message
-            }
-
-            // Check if any input field is empty
-            if (company === "") {
-                errorMessage = "Company is required."; // Set common error message
-                displayError("job_company_error", errorMessage, true); // Display error message
-            }
-
-            // Check if any input field is empty
-            if (location === "") {
-                errorMessage = "Location is required."; // Set common error message
-                displayError("job_location_error", errorMessage, true); // Display error message
+            if (name === "") {
+                errorMessage = "Name category is required."; // Set common error message
+                displayError("name_category_error", errorMessage, true); // Display error message
             }
 
             // Check if any input field is empty
             if (description === "") {
                 errorMessage = "Description is required."; // Set common error message
-                displayError("job_desc_error", errorMessage, true); // Display error message
+                displayError("description_category_error", errorMessage, true); // Display error message
             }
 
-            // Check if any input field is empty
-            if (salary === "") {
-                errorMessage = "Salary is required."; // Set common error message
-                displayError("job_salary_error", errorMessage, true); // Display error message
-            }
-    
             // If there are no errors, submit the form
             if (errorMessage === "") {
                 this.submit(); // Submit the form
             }
+
+            event.preventDefault(); // Prevent default form submission
         });
 
- 
-
-        // Listen for input event on job title field
-        document.getElementById("job_title").addEventListener("input", function(event) {
-            var jobTitle = this.value.trim(); // Get value of job title field
+        // Listen for input event on name_category field
+        document.getElementById("name_category").addEventListener("input", function(event) {
+            var name = this.value.trim(); // Get value of name_category field
             
-            // Validate job title format (characters only)
-            if (jobTitle === "") {
-                displayError("job_title_error", "Title is required.", true); // Display error message for empty job title
-            } else if (/^[a-zA-Z\s]+$/.test(jobTitle)) {
-                displayError("job_title_error", "Valid Job Title", false); // Display valid message for job title
+            // Validate name_category format (characters only)
+            if (name === "") {
+                displayError("name_category_error", "Name is required.", true); // Display error message for empty name
+            } else if (/^[a-zA-Z\s]+$/.test(name)) {
+                displayError("name_category_error", "Valid name category", false); // Display valid message for name category
             } else {
-                displayError("job_title_error", "Job title must contain only characters.", true); // Display error message for invalid job title
+                displayError("name_category_error", "Name category must contain only characters.", true); // Display error message for invalid name category
             }
         });
 
-        // Listen for input event on job salary field
-        document.getElementById("salary").addEventListener("input", function(event) {
-            var jobSalary = this.value.trim(); // Get value of job salary field
-            
-            // Validate if salary is empty
-            if (jobSalary === "") {
-                displayError("job_salary_error", "Salary is required.", true); // Display error message for empty salary
-            } else if (/^\d+(\.\d+)?$/.test(jobSalary)) {
-                displayError("job_salary_error", "Valid Job Salary", false); // Display valid message for salary
-            } else {
-                displayError("job_salary_error", "Salary must be a number.", true); // Display error message for invalid salary format
-            }
-        });
-
-        // Listen for input event on company field
-        document.getElementById("company").addEventListener("input", function(event) {
-            var company = this.value.trim(); // Get value of company field
-            
-            // Validate if company is empty
-            if (company === "") {
-                displayError("job_company_error", "Company is required.", true); // Display error message for empty company
-            } else {
-                displayError("job_company_error", "Valid company", false); // Display valid message for company
-            }
-        });
-
-        // Listen for input event on location field
-        document.getElementById("location").addEventListener("input", function(event) {
-            var location = this.value.trim(); // Get value of location field
-            
-            // Validate if location is empty
-            if (location === "") {
-                displayError("job_location_error", "Location is required.", true); // Display error message for empty location
-            } else {
-                displayError("job_location_error", "Valid location", false); // Display valid message for location
-            }
-        });
-
-        // Listen for input event on description field
-        document.getElementById("description").addEventListener("input", function(event) {
-            var description = this.value.trim(); // Get value of description field
+        // Listen for input event on description_category field
+        document.getElementById("description_category").addEventListener("input", function(event) {
+            var description = this.value.trim(); // Get value of description_category field
             
             // Validate if description is empty
             if (description === "") {
-                displayError("job_desc_error", "Description is required.", true); // Display error message for empty description
+                displayError("description_category_error", "Description is required.", true); // Display error message for empty description
             } else {
-                displayError("job_desc_error", "Valid description", false); // Display valid message for description
+                displayError("description_category_error", "Valid description", false); // Display valid message for description
             }
         });
-
-
-
 
         // Function to display error message
         function displayError(elementId, errorMessage, isError) {
@@ -541,193 +535,113 @@ $categorys = $catController->getCategory();
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-        // Function to check if all input fields are populated
-        function checkInputFields() {
-            var inputs = document.querySelectorAll("#addJobForm input");
-            var allPopulated = true;
+            // Function to check if all input fields are populated
+            function checkInputFields() {
+                var inputs = document.querySelectorAll("#addCategoryForm input");
+                var allPopulated = true;
+                inputs.forEach(function(input) {
+                    if (input.value.trim() === "") {
+                        allPopulated = false;
+                    }
+                });
+                return allPopulated;
+            }
+
+            // Function to enable/disable submit button based on input fields
+            function toggleSubmitButton() {
+                var submitButton = document.querySelector("#addCategoryForm button[type='submit']");
+                submitButton.disabled = !checkInputFields();
+            }
+
+            // Listen for input event on each input field
+            var inputs = document.querySelectorAll("#addCategoryForm input");
             inputs.forEach(function(input) {
-                if (input.value.trim() === "") {
-                    allPopulated = false;
-                }
+                input.addEventListener("input", function() {
+                    toggleSubmitButton();
+                });
             });
-            return allPopulated;
-        }
 
-        // Function to enable/disable submit button based on input fields
-        function toggleSubmitButton() {
-            var submitButton = document.querySelector("#addJobForm button[type='submit']");
-            submitButton.disabled = !checkInputFields();
-        }
-
-        // Listen for input event on each input field
-        var inputs = document.querySelectorAll("#addJobForm input");
-        inputs.forEach(function(input) {
-            input.addEventListener("input", function() {
-                toggleSubmitButton();
-            });
+            // Initial call to toggleSubmitButton to set initial state
+            toggleSubmitButton();
         });
+</script>
 
-        // Initial call to toggleSubmitButton to set initial state
-        toggleSubmitButton();
-    });
-    */
-    </script>
 
     <!-- update JS -->
     <script>
 
-        /*
-        document.getElementById("updateJobForm").addEventListener("submit", function(event) {
+        document.getElementById("updateCategoryForm").addEventListener("submit", function(event) {
             // Reset previous error messages
-            
-            document.getElementById("update_job_title_error").textContent = ""; // Reset error message for job title
-            document.getElementById("update_company_error").textContent = ""; // Reset error message for company
-            document.getElementById("update_location_error").textContent = ""; // Reset error message for location
-            document.getElementById("update_description_error").textContent = ""; // Reset error message for description
-            document.getElementById("update_salary_error").textContent = ""; // Reset error message for salary
-            // Reset other error messages for additional fields
+            document.getElementById("update_description_category_error").textContent = ""; // Reset error message for description
+            document.getElementById("update_name_category_error").textContent = ""; // Reset error message for name_category
 
             // Get input values
-            
-            var jobTitle = document.getElementById("update_job_title").value.trim();
-            var company = document.getElementById("update_company").value.trim();
-            var location = document.getElementById("update_location").value.trim();
-            var description = document.getElementById("update_description").value.trim();
-            var salary = document.getElementById("update_salary").value.trim();
-            // Get values for other input fields
+            var description = document.getElementById("update_description_category").value.trim();
+            var name = document.getElementById("update_name_category").value.trim();
 
             // Variable to store the common error message
             var errorMessage = "";
-        
-        
-            
-            // Validate job title (characters only)
-            if (!/^[a-zA-Z\s]+$/.test(jobTitle)) {
-                errorMessage = "Job title must contain only characters."; // Set common error message
-                displayError("update_job_title_error", errorMessage, true); // Display error message
-            }
-            // Check if salary is not empty and contains only numbers
-            if (!/^\d+(\.\d+)?$/.test(salary)) {
-                errorMessage = "Salary must be a number."; // Set common error message
-                displayError("update_salary_error", errorMessage, true); // Display error message
-            }
-            // Check if any input field is empty
-            if (jobTitle === "") {
-                errorMessage = "Job title is required."; // Set common error message
-                displayError("update_job_title_error", errorMessage, true); // Display error message
+
+            // Validate name_category (characters only)
+            if (!/^[a-zA-Z\s]+$/.test(name)) {
+                errorMessage = "Name category must contain only characters."; // Set common error message
+                displayError("update_name_category_error", errorMessage, true); // Display error message
             }
 
             // Check if any input field is empty
-            if (company === "") {
-                errorMessage = "Company is required."; // Set common error message
-                displayError("update_company_error", errorMessage, true); // Display error message
-            }
-
-            // Check if any input field is empty
-            if (location === "") {
-                errorMessage = "Location is required."; // Set common error message
-                displayError("update_location_error", errorMessage, true); // Display error message
+            if (name === "") {
+                errorMessage = "Name category is required."; // Set common error message
+                displayError("update_name_category_error", errorMessage, true); // Display error message
             }
 
             // Check if any input field is empty
             if (description === "") {
                 errorMessage = "Description is required."; // Set common error message
-                displayError("update_description_error", errorMessage, true); // Display error message
+                displayError("update_description_category_error", errorMessage, true); // Display error message
             }
-            // Check if any input field is empty
-            if (salary === "") {
-                errorMessage = "Salary is required."; // Set common error message
-                displayError("update_salary_error", errorMessage, true); // Display error message
-            }
-            
-            // Display error message for other fields
 
-            // Prevent form submission if there's an error message
-            if (errorMessage !== "") {
-                event.preventDefault();
+            // If there are no errors, submit the form
+            if (errorMessage === "") {
+                this.submit(); // Submit the form
+            }
+
+            event.preventDefault(); // Prevent default form submission
+        });
+
+        // Listen for input event on name_category field
+        document.getElementById("update_name_category").addEventListener("input", function(event) {
+            var name = this.value.trim(); // Get value of name_category field
+            
+            // Validate name_category format (characters only)
+            if (name === "") {
+                displayError("update_name_category_error", "Name is required.", true); // Display error message for empty name
+            } else if (/^[a-zA-Z\s]+$/.test(name)) {
+                displayError("update_name_category_error", "Valid name category", false); // Display valid message for name category
+            } else {
+                displayError("update_name_category_error", "Name category must contain only characters.", true); // Display error message for invalid name category
             }
         });
 
-        
-
-            // Listen for input event on job title field
-            document.getElementById("update_job_title").addEventListener("input", function(event) {
-                var jobTitle = this.value.trim(); // Get value of job title field
-                var jobTitleError = document.getElementById("update_job_title_error"); // Get error message element
-                
-                // Validate job title format (characters only)
-                if (jobTitle === "") {
-                    displayError("update_job_title_error", "Title is required.", true); // Display error message for empty job title
-                } else if (/^[a-zA-Z\s]+$/.test(jobTitle)) {
-                    displayError("update_job_title_error", "Valid Job Title", false); // Display valid message for job title
-                } else {
-                    displayError("update_job_title_error", "Job title must contain only characters.", true); // Display error message for invalid job title
-                }
-            });
-
-            // Listen for input event on job salary field
-            document.getElementById("update_salary").addEventListener("input", function(event) {
-                var jobSalary = this.value.trim(); // Get value of job salary field
-                var jobSalaryError = document.getElementById("update_salary_error"); // Get error message element
-                
-                // Validate if salary is empty
-                if (jobSalary === "") {
-                    displayError("update_salary_error", "Salary is required.", true); // Display error message for empty salary
-                } else if (/^\d+(\.\d+)?$/.test(jobSalary)) {
-                    displayError("update_salary_error", "Valid Job Salary", false); // Display valid message for salary
-                } else {
-                    displayError("update_salary_error", "Salary must be a number.", true); // Display error message for invalid salary format
-                }
-            });
-
-            // Listen for input event on company field
-            document.getElementById("update_company").addEventListener("input", function(event) {
-                var company = this.value.trim(); // Get value of company field
-                var companyError = document.getElementById("update_company_error"); // Get error message element
-                
-                // Validate if company is empty
-                if (company === "") {
-                    displayError("update_company_error", "Company is required.", true); // Display error message for empty company
-                } else {
-                    displayError("update_company_error", "Valid company", false); // Display valid message for company
-                }
-            });
-
-            // Listen for input event on location field
-            document.getElementById("update_location").addEventListener("input", function(event) {
-                var location = this.value.trim(); // Get value of location field
-                var locationError = document.getElementById("update_location_error"); // Get error message element
-                
-                // Validate if location is empty
-                if (location === "") {
-                    displayError("update_location_error", "Location is required.", true); // Display error message for empty location
-                } else {
-                    displayError("update_location_error", "Valid location", false); // Display valid message for location
-                }
-            });
-
-            // Listen for input event on description field
-            document.getElementById("update_description").addEventListener("input", function(event) {
-                var description = this.value.trim(); // Get value of description field
-                var descriptionError = document.getElementById("update_description_error"); // Get error message element
-                
-                // Validate if description is empty
-                if (description === "") {
-                    displayError("update_description_error", "Description is required.", true); // Display error message for empty description
-                } else {
-                    displayError("update_description_error", "Valid description", false); // Display valid message for description
-                }
-            });
-
-
-            // Function to display error message
-            function displayError(elementId, errorMessage, isError) {
-                var errorElement = document.getElementById(elementId);
-                errorElement.textContent = errorMessage;
-                errorElement.classList.toggle("text-danger", isError);
-                errorElement.classList.toggle("text-success", !isError);
+        // Listen for input event on description_category field
+        document.getElementById("update_description_category").addEventListener("input", function(event) {
+            var description = this.value.trim(); // Get value of description_category field
+            
+            // Validate if description is empty
+            if (description === "") {
+                displayError("update_description_category_error", "Description is required.", true); // Display error message for empty description
+            } else {
+                displayError("update_description_category_error", "Valid description", false); // Display valid message for description
             }
-  */
+        });
+
+        // Function to display error message
+        function displayError(elementId, errorMessage, isError) {
+            var errorElement = document.getElementById(elementId);
+            errorElement.textContent = errorMessage;
+            errorElement.classList.toggle("text-danger", isError);
+            errorElement.classList.toggle("text-success", !isError);
+        }
+
     </script>
 
 

@@ -8,28 +8,22 @@ class categoryController {
     public function __construct() {
         $this->conn = config::getConnexion(); // Get PDO connection
     }
-
-    // Create a new job
-    public function createCategory($category_id , $name , $description) {
+    // Create a new category
+    public function createCategory($category_id, $name_category, $description) {
         try {
-
-            
-
-            $stmt = $this->conn->prepare("INSERT INTO category (id_category ,name_category, description_category) VALUES (?, ?, ?)");
-            $stmt->execute([$category_id , $name , $description]);
+            // Check if the category name already exists
+            $stmt = $this->conn->prepare("SELECT id_category FROM category WHERE name_category = ?");
+            $stmt->execute([$name_category]);
+            $existingCategory = $stmt->fetch();
+    
+            if ($existingCategory) {
+                return "Category name already exists."; // Return a message indicating the category name already exists
+            }
+    
+            // Insert the new category
+            $stmt = $this->conn->prepare("INSERT INTO category (id_category, name_category, description_category) VALUES (?, ?, ?)");
+            $stmt->execute([$category_id, $name_category, $description]);
             return "New category created successfully";
-        } catch (PDOException $e) {
-            return "Error: " . $e->getMessage();
-        }
-    }
-
-    // Read a job by ID
-    public function readJob($id) {
-        try {
-            $stmt = $this->conn->prepare("SELECT * FROM category WHERE id_category=?");
-            $stmt->execute([$id]);
-            $result = $stmt->fetch();
-            return $result ? $result : "category not found";
         } catch (PDOException $e) {
             return "Error: " . $e->getMessage();
         }
@@ -47,13 +41,25 @@ class categoryController {
         }
     }
 
-    // Update a job
-    public function updatecategory($category_id,$name, $description) {
-        try {
+ 
 
-            $stmt = $this->conn->prepare("UPDATE category SET name_category=?, description_category=? WHERE id_category=?");
-            $stmt->execute([$name, $description,$category_id]);
-           
+
+    public function updateCategory($category_id, $name_category, $description) {
+        try {
+            // Check if the category name already exists (excluding the current category being updated)
+            $stmt = $this->conn->prepare("SELECT id_category FROM category WHERE name_category = ? AND id_category != ?");
+            $stmt->execute([$name_category, $category_id]);
+            $existingCategory = $stmt->fetch();
+    
+            if ($existingCategory) {
+               
+                return "Category name already exists."; // Return a message indicating the category name already exists
+            }
+    
+            // Update the category
+            $stmt = $this->conn->prepare("UPDATE category SET name_category = ?, description_category = ? WHERE id_category = ?");
+            $stmt->execute([$name_category, $description, $category_id]);
+            return "Category updated successfully";
         } catch (PDOException $e) {
             return "Error: " . $e->getMessage();
         }
@@ -65,17 +71,6 @@ class categoryController {
             $stmt = $this->conn->prepare("DELETE FROM category WHERE id_category=?");
             $stmt->execute([$id]);
             return "Job deleted successfully";
-        } catch (PDOException $e) {
-            return "Error: " . $e->getMessage();
-        }
-    }
-
-    public function getJobById($id) {
-        try {
-            $stmt = $this->conn->prepare("SELECT * FROM category WHERE id_category=?");
-            $stmt->execute([$id]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result ? $result : "category not found";
         } catch (PDOException $e) {
             return "Error: " . $e->getMessage();
         }
@@ -134,7 +129,19 @@ class categoryController {
 
         return $current_id;
     }
-
+/*
+    // Read a job by ID
+    public function readJob($id) {
+        try {
+            $stmt = $this->conn->prepare("SELECT * FROM category WHERE id_category=?");
+            $stmt->execute([$id]);
+            $result = $stmt->fetch();
+            return $result ? $result : "category not found";
+        } catch (PDOException $e) {
+            return "Error: " . $e->getMessage();
+        }
+    }
+*/
 }
 
 

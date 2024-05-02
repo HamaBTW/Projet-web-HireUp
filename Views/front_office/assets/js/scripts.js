@@ -8,31 +8,50 @@ var editButtons = document.querySelectorAll(".edit-btn");
 var span = document.getElementsByClassName("close")[0];
 
 // JavaScript to handle edit button click event
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
   const editButtons = document.querySelectorAll(".edit-btn");
 
   editButtons.forEach((button) => {
-      button.addEventListener("click", function() {
-          // Get job details from data attributes
-          const id = this.getAttribute("data-job-id");
-          const title = this.getAttribute("data-job-title");
-          const company = this.getAttribute("data-company");
-          const location = this.getAttribute("data-location");
-          const description = this.getAttribute("data-description");
-          const salary = this.getAttribute("data-salary");
-          const category = this.getAttribute("data-category");
-          // Populate update form inputs with job details
-          console.log(category);
-          console.log("hello");
-          populateUpdateForm(id, title, company, location, description, salary, category);
-          // Show the update form modal
-          document.getElementById("updateModal").style.display = "block";
-      });
+    button.addEventListener("click", function () {
+      // Get job details from data attributes
+      const id = this.getAttribute("data-job-id");
+      const title = this.getAttribute("data-job-title");
+      const company = this.getAttribute("data-company");
+      const location = this.getAttribute("data-location");
+      const description = this.getAttribute("data-description");
+      const salary = this.getAttribute("data-salary");
+      const category = this.getAttribute("data-category");
+      const job_image = this.getAttribute("data-jobImg");
+      // Populate update form inputs with job details
+      console.log(category);
+      console.log("hello");
+      populateUpdateForm(
+        id,
+        title,
+        company,
+        location,
+        description,
+        salary,
+        category,
+        job_image
+      );
+      // Show the update form modal
+      document.getElementById("updateModal").style.display = "block";
+    });
   });
 });
 
 // Function to populate the update form with job details
-function populateUpdateForm(id, title, company, location, description, salary, category) {
+function populateUpdateForm(
+  id,
+  title,
+  company,
+  location,
+  description,
+  salary,
+  category,
+  job_image
+) {
   console.log(category);
   console.log("hiiiiiii");
 
@@ -43,6 +62,9 @@ function populateUpdateForm(id, title, company, location, description, salary, c
   document.getElementById("update_description").value = description;
   document.getElementById("update_salary").value = salary;
   document.getElementById("update_category").value = category;
+  console.log("data:image/jpeg;base64," + job_image);
+  document.getElementById("update_job_img").src =
+    "data:image/jpeg;base64," + job_image;
 }
 
 // When the user clicks on the edit button, open the modal

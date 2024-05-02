@@ -1,10 +1,11 @@
 <?php
 // Include the controller file
 require_once __DIR__ . '/../../../Controls/job_management/JobC.php';
-
+session_start();
 // Create an instance of JobController
 $jobController = new JobController();
 
+// You need to implement this method
 // Handle form submissions
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   if ($_POST["action"] == "update") {
@@ -17,13 +18,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $salary = $_POST["salary"];
     $category = $_POST["category"];
 
-    // Only echo the result if the job update is successful
-    $result = $jobController->updateJob($job_id, $title, $company, $location, $description, $salary, $category);
+    if (!empty($_FILES['job_image']['name']) && $_FILES['job_image']['error'] === 0) {
 
-    if ($result !== false) {
-      echo $result;
-      header("Location: jobs.php");
-      exit();
+      // Get profile photo and cover data
+      $job_image_tmp_name = $_FILES['job_image']['tmp_name'];
+      $job_image = file_get_contents($job_image_tmp_name);
+
+      // Only echo the result if the job update is successful
+      $result = $jobController->updateJob($job_id, $title, $company, $location, $description, $salary, $category, $job_image);
+
+      if ($result !== false) {
+        // Redirect to prevent form resubmission
+
+        header("Location: {$_SERVER['REQUEST_URI']}");
+        exit;
+      }
+    } else {
+      // Only echo the result if the job update is successful
+      $result = $jobController->updateJobWithoutImage($job_id, $title, $company, $location, $description, $salary, $category);
+
+      if ($result !== false) {
+        // Redirect to prevent form resubmission
+
+        header("Location: {$_SERVER['REQUEST_URI']}");
+        exit;
+      }
     }
   } elseif ($_POST["action"] == "delete" && isset($_POST["job_id"])) {
     // Delete job
@@ -38,11 +57,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
   }
 }
-
-
 // Fetch all jobs
 $jobs = $jobController->getAllJobsWithCategory();
 $id_category_options = $jobController->generateCategoryOptions();
+/*
+$userId = 267126;
+// Fetch user's profile education
+$userProfileEducation = $jobController->getUserProfileEducation($userId); // Assuming you have a method to retrieve user profile education
+// Sort jobs based on relevance to user's education
+$sortedJobs = [];
+foreach ($jobs as $job) {
+  // Check if the job category matches the user's education
+  if ($job['category_name'] === $userProfileEducation) {
+    // If the job category matches, add it to the beginning of the sorted jobs array
+    array_unshift($job, $sortedJobs);
+  } else {
+    // If the job category doesn't match, add it to the end of the sorted jobs array
+    $sortedJobs[] = $job;
+  }
+}
+*/
+$userProfileId = "267126"; // Assuming the profile ID is stored in the session
+
+// Instantiate JobController
+$jobController = new JobController();
+
+// Fetch Jobs Matching Profile Attributes
+$filteredJobs = $jobController->fetchJobsByEducationLevel($userProfileId);
+
+// Fetch Additional Jobs from Other Categories without a limit
+$otherJobs = $jobController->fetchJobsByCategory('otherCategoryId'); // Replace 'otherCategoryId' with the ID of the category you want to fetch jobs from
+
+// Ensure $filteredJobs is an array
+if (!is_array($filteredJobs)) {
+  $filteredJobs = [];
+}
+
+// Ensure $otherJobs is an array
+if (!is_array($otherJobs)) {
+  $otherJobs = [];
+}
+
+// Merge the arrays of filtered jobs and other jobs
+$allJobs = array_merge($filteredJobs, $otherJobs);
+
+
 
 ?>
 
@@ -55,6 +114,7 @@ $id_category_options = $jobController->generateCategoryOptions();
   <meta charset="utf-8" />
   <meta name="description" content="" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=1">
 
   <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
@@ -63,7 +123,6 @@ $id_category_options = $jobController->generateCategoryOptions();
   <link rel="stylesheet" href="../assets/css/font-awesome.css" />
   <link rel="stylesheet" href="../assets/css/main.css" class="color-switcher-link" />
   <script src="../assets/js/vendor/modernizr-2.6.2.min.js"></script>
-
   <link href="../assets/images/HireUp_icon.ico" rel="icon">
 
   <style>
@@ -119,7 +178,48 @@ $id_category_options = $jobController->generateCategoryOptions();
       overflow: hidden;
       /* Prevent scrolling */
     }
+
+
+
+    /* JOB IMAGE STYLESHEET */
+    /* Style for job container */
+    .job-img-container {
+      width: 100%;
+      height: 200px;
+      /* Adjust height as needed */
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      /* Shadow effect */
+    }
+
+    /* Style for job image */
+    .job-img-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .voice-icon {
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+    /* Style for job container */
+    .hidden-job-img-container {
+      width: 100%;
+      height: 200px;
+      /* Adjust height as needed */
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      /* Shadow effect */
+
+    }
+
+    
   </style>
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
 
 </head>
 
@@ -342,60 +442,88 @@ $id_category_options = $jobController->generateCategoryOptions();
             </div>
           </div>
 
-          <!-- Create Job Form -->
           <div class="container mb-5">
-            <div class="row">
-              <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12">
                 <h2>Add New Job</h2>
-                <form id="createJobForm" method="post" action="addJob.php">
-                  <!-- Input fields for job details -->
+                <form id="createJobForm" method="post" action="addJob.php" enctype="multipart/form-data">
+                    <!-- Input fields for job details -->
 
-                  <div class="form-group">
-                    <label for="job_title">Job Title</label>
-                    <input type="text" class="form-control" id="job_title" name="job_title">
-                    <span id="job_title_error" class="text-danger"></span> <!-- Error message placeholder -->
-                  </div>
-                  <div class="form-group">
-                    <label for="company">Company</label>
-                    <input type="text" class="form-control" id="company" name="company">
-                    <span id="job_company_error" class="text-danger"></span> <!-- Error message placeholder -->
-                  </div>
-                  <div class="form-group">
-                    <label for="location">Location</label>
-                    <input type="text" class="form-control" id="location" name="location">
-                    <span id="job_location_error" class="text-danger"></span> <!-- Error message placeholder -->
-                  </div>
-                  <div class="form-group">
-                    <label for="description">Description</label>
-                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-                    <span id="job_desc_error" class="text-danger"></span> <!-- Error message placeholder -->
-                  </div>
-                  <div class="form-group">
-                    <label for="salary">Salary</label>
-                    <input type="text" class="form-control" id="salary" name="salary">
-                    <span id="job_salary_error" class="text-danger"></span> <!-- Error message placeholder -->
-                  </div>
-                  <div class="form-group">
-                    <label for="category" class="form-label">Category *</label>
-                    <select class="form-select" id="category" name="category" required>
-                      <option value="" selected disabled>Select Category</option>
-                      <?php echo $id_category_options; ?>
-                    </select>
-                    <span id="job_category_error" class="text-danger"></span>
-                  </div>
+                    <div class="form-group">
+                        <label for="job_title">Job Title</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="job_title" name="job_title">
+                            <i class="fa fa-microphone voice-icon" onclick="startSpeechRecognition('job_title')"></i>
+                        </div>
+                        <span id="job_title_error" class="text-danger"></span> <!-- Error message placeholder -->
+                    </div>
 
-                  <button type="submit" class="btn btn-primary">Submit</button>
+                    <div class="form-group">
+                        <label for="company">Company</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="company" name="company">
+                            <i class="fa fa-microphone voice-icon" onclick="startSpeechRecognition('company')"></i>
+                        </div>
+                        <span id="job_company_error" class="text-danger"></span> <!-- Error message placeholder -->
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="location" name="location">
+                            <i class="fa fa-microphone voice-icon" onclick="startSpeechRecognition('location')"></i>
+                        </div>
+                        <span id="job_location_error" class="text-danger"></span> <!-- Error message placeholder -->
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <div class="input-group">
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            <i class="fa fa-microphone voice-icon" onclick="startSpeechRecognition('description')"></i>
+                        </div>
+                        <span id="job_desc_error" class="text-danger"></span> <!-- Error message placeholder -->
+                    </div>
+
+                    <div class="form-group">
+                        <label for="salary">Salary</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="salary" name="salary">
+                            
+                            <i class="fa fa-microphone voice-icon" onclick="startSpeechRecognition('salary')"></i>
+                        </div>
+                        <span id="job_salary_error" class="text-danger"></span> <!-- Error message placeholder -->
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category" class="form-label">Category *</label>
+                        <div class="input-group">
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="" selected disabled>Select Category</option>
+                                <?php echo $id_category_options; ?>
+                            </select>
+                            
+                        </div>
+                        <span id="job_category_error" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="job_image" class="custom-file-label" style="background-color: #F2F2F2; color: black;"><b>Job Image</b></label>
+                        <input type="file" class="custom-file-input button" id="job_image" name="job_image" accept="image/*" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
-              </div>
             </div>
-          </div>
+        </div>
+    </div>
 
           <!-- Popup Form for Editing Job -->
           <div id="updateJobModal" class="modal">
             <div class="modal-content">
               <span class="close">&times;</span>
               <h2>Edit Job</h2>
-              <form id="updateJobForm" method="post">
+              <form id="updateJobForm" method="post" enctype="multipart/form-data">
                 <!-- Form fields for updating job details -->
                 <input type="hidden" name="action" value="update">
                 <div class="form-group">
@@ -436,8 +564,24 @@ $id_category_options = $jobController->generateCategoryOptions();
                     <?php echo $id_category_options; ?>
                   </select>
                   <span id="update_category_error" class="text-danger"></span> <!-- Error message placeholder -->
-
                 </div>
+
+                <!-- Hidden job img container -->
+                <div class="form-group hidden-job-img-container" id="hiddenJobImageContainer" style="display: none;">
+                  <img src="#" alt="Hidden Job Image" class="hidden-job-image" id="hiddenJobImage">
+                </div>
+
+                <!-- job image container -->
+                <div class="form-group job-img-container" id="update_job_image_display">
+                  <!-- Output the job img with appropriate MIME type -->
+                  <img src="#" id="update_job_img" alt="Job Image" class="img-fluid job-img-image">
+                </div><br>
+
+                <!-- Add input field for job img -->
+                <div class="form-group">
+                  <label for="update_job_image" class="form-label">Choose New Job Image</label>
+                  <input type="file" class="form-control" id="update_job_image" name="job_image" onchange="handleJobImageChange(event)" accept="image/*">
+                </div><br>
 
                 <button type="submit" class="btn btn-primary" id="updateJobBtn">Update Job</button>
                 <button type="button" class="btn btn-secondary cancel-btn" id="cancelUpdateBtn">Cancel</button>
@@ -450,54 +594,79 @@ $id_category_options = $jobController->generateCategoryOptions();
               <main class="col-lg-7 col-xl-8 order-lg-2">
                 <!-- Front-end code to display dynamically fetched jobs -->
 
-                <!-- Display each job as an article -->
-                <?php foreach ($jobs as $job) : ?>
-                  <article class="text-center text-md-left vertical-item content-padding bordered post type-post status-publish format-standard has-post-thumbnail sticky position-relative">
-                    <!-- Dropdown menu -->
-                    <div class="dropdow mr-3" style="position: absolute; top: 10px; right: 10px;">
-                      <span class="dropdown" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor: pointer; color: #000; font-size: 35px;">...</span>
-                      <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                        <button class="dropdown-item edit-btn" data-job-id="<?= $job['id'] ?>" data-job-title="<?= $job['title'] ?>" data-company="<?= $job['company'] ?>" data-location="<?= $job['location'] ?>" data-description="<?= $job['description'] ?>" data-salary="<?= $job['salary'] ?>" data-category="<?= $job['category_name'] ?>">Edit</button>
-                        <form method="post" style="display:inline;">
-                          <input type="hidden" name="action" value="delete">
-                          <input type="hidden" name="job_id" value="<?= $job['id'] ?>">
-                          <button type="submit" class="dropdown-item" onclick="return confirm('Are you sure you want to delete this job?')">Delete</button>
-                        </form>
+                <!-- Bootstrap Modal for Full-Screen Image -->
+                <div class="modal fade" id="jobImageModal" tabindex="-1" aria-labelledby="jobImageModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body" style="max-height: 90vh; overflow: auto;">
+                        <img id="fullScreenImage" src="" class="img-fluid" style="width: 100%;" alt="Job Image">
                       </div>
                     </div>
-
-                    <!-- Job content -->
-                    <div class="item-content">
-                      <header class="entry-header">
-                        <h3 class="entry-title">
-                          <a href="#link" rel="bookmark">
-                            <?= $job['title']; ?>
+                  </div>
+                </div>
+                
+                    <?php foreach ($allJobs as $job) : ?>
+                      <!-- Display job image if exists -->
+                      <?php if (!empty($job['job_image'])) : ?>
+                        <div class="item-media post-thumbnail embed-responsive-3by2">
+                          <a href="#" onclick="openFullScreenImage('<?= base64_encode($job['job_image']) ?>')">
+                            <img src="data:image/jpeg;base64,<?= base64_encode($job['job_image']) ?>" alt="Job Image">
                           </a>
-                        </h3>
-                      </header>
-                      <!-- Job description -->
-                      <div class="entry-content">
-                        <p>
-                          <?= $job['description']; ?>
-                        </p>
-                      </div>
-                      <!-- Job attributes -->
-                      <div class="entry-footer">
-                        <i class="color-main fa fa-user"></i>
-                        <a href="#"> <?= $job['company']; ?> </a>
-                        <i class="color-main fa fa-calendar"></i>
-                        <a href="#"> <?= $job['date_posted']; ?> </a>
-                        <i class="color-main fa fa-map"></i>
-                        <a href="#"> <?= $job['location']; ?> </a>
-                        <i class="color-main fa fa-money"></i>
-                        <a href="#"> <?= $job['salary']; ?> </a>
-                        <i class="color-main fa fa-tag"></i>
-                        <a href="#"> <?= $job['category_name']; ?> </a> <!-- Display category here -->
-                      </div>
-                    </div>
-                    <!-- .item-content -->
-                  </article>
-                <?php endforeach; ?>
+                        </div>
+                      <?php endif; ?>
+                      <article class="text-center text-md-left vertical-item content-padding bordered post type-post status-publish format-standard has-post-thumbnail sticky position-relative">
+                        <!-- Dropdown menu -->
+                        <div class="dropdow mr-3" style="position: absolute; top: 10px; right: 10px;">
+                          <span class="dropdown" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor: pointer; color: #000; font-size: 35px;">...</span>
+                          <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                            <button class="dropdown-item edit-btn" data-job-id="<?= $job['id'] ?>" data-job-title="<?= $job['title'] ?>" data-company="<?= $job['company'] ?>" data-location="<?= $job['location'] ?>" data-description="<?= $job['description'] ?>" data-salary="<?= $job['salary'] ?>" data-category="<?= $job['category_name'] ?>" data-jobImg="<?php echo base64_encode($job['job_image']) ?>">Edit</button>
+                            <form method="post" style="display:inline;">
+                              <input type="hidden" name="action" value="delete">
+                              <input type="hidden" name="job_id" value="<?= $job['id'] ?>">
+                              <button type="submit" class="dropdown-item" onclick="return confirm('Are you sure you want to delete this job?')">Delete</button>
+                            </form>
+                          </div>
+                        </div>
+
+                        <!-- Job content -->
+                        <div class="item-content">
+                          <header class="entry-header">
+                            <h3 class="entry-title">
+                              <a href="#link" rel="bookmark">
+                                <?= $job['title']; ?>
+                              </a>
+                            </h3>
+                          </header>
+                          <!-- Job description -->
+                          <div class="entry-content">
+                            <p>
+                              <?= $job['description']; ?>
+                            </p>
+                          </div>
+                          <!-- Job attributes -->
+                          <div class="entry-footer">
+                            <i class="color-main fa fa-user"></i>
+                            <a href="#"> <?= $job['company']; ?> </a>
+                            <i class="color-main fa fa-calendar"></i>
+                            <a href="#"> <?= $job['date_posted']; ?> </a>
+                            <i class="color-main fa fa-map"></i>
+                            <a href="#"> <?= $job['location']; ?> </a>
+                            <i class="color-main fa fa-money"></i>
+                            <a href="#"> <?= $job['salary']; ?> </a>
+                            <i class="color-main fa fa-tag"></i>
+                            <a href="#"> <?= $job['category_name']; ?> </a> <!-- Display category here -->
+                          </div>
+                        </div>
+                        <!-- .item-content -->
+                      </article>
+                      <br>
+                    <?php endforeach; ?>
+                
 
 
 
@@ -777,11 +946,41 @@ $id_category_options = $jobController->generateCategoryOptions();
     <!-- eof #box_wrapper -->
   </div>
   <!-- eof #canvas -->
-
+<!-- Font Awesome library -->
+  
   <script src="../assets/js/compressed.js"></script>
   <script src="../assets/js/main.js"></script>
   <script src="../assets/js/scripts.js"></script>
+  <script>
+        function startSpeechRecognition(inputId) {
+            if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.interimResults = true;
 
+                recognition.addEventListener('result', e => {
+                    const transcript = Array.from(e.results)
+                        .map(result => result[0])
+                        .map(result => result.transcript)
+                        .join('');
+
+                    document.getElementById(inputId).value = transcript;
+                });
+
+                recognition.start();
+            } else {
+                alert("Speech recognition not supported in this browser.");
+            }
+        }
+    </script>
+
+  <script>
+    function openFullScreenImage(imageData) {
+      var imageSrc = "data:image/jpeg;base64," + imageData;
+      document.getElementById("fullScreenImage").src = imageSrc;
+      $('#jobImageModal').modal('show');
+    }
+  </script>
   <!-- add JS -->
 
   <script>
@@ -792,14 +991,14 @@ $id_category_options = $jobController->generateCategoryOptions();
       document.getElementById("job_location_error").textContent = ""; // Reset error message for location
       document.getElementById("job_desc_error").textContent = ""; // Reset error message for description
       document.getElementById("job_salary_error").textContent = ""; // Reset error message for salary
-
+      document.getElementById("job_category_error").textContent = "";
       // Get input values
       var jobTitle = document.getElementById("job_title").value.trim();
       var company = document.getElementById("company").value.trim();
       var location = document.getElementById("location").value.trim();
       var description = document.getElementById("description").value.trim();
       var salary = document.getElementById("salary").value.trim();
-
+      var category = document.getElementById("category").value.trim();
       // Variable to store the common error message
       var errorMessage = "";
 
@@ -851,6 +1050,10 @@ $id_category_options = $jobController->generateCategoryOptions();
       if (salary === "") {
         errorMessage = "Salary is required."; // Set common error message
         displayError("job_salary_error", errorMessage, true); // Display error message
+      }
+      if (category === "") {
+        errorMessage = "Category is required."; // Set common error message
+        displayError("job_category_error", errorMessage, true); // Display error message
       }
 
       // Prevent form submission if there's an error message
@@ -925,6 +1128,18 @@ $id_category_options = $jobController->generateCategoryOptions();
       }
     });
 
+    document.getElementById("category").addEventListener("input", function(event) {
+      var category = this.value.trim(); // Get value of description field
+      var categoryError = document.getElementById("job_category_error"); // Get error message element
+
+      // Validate if description is empty
+      if (category === "") {
+        displayError("job_category_error", "category is required.", true); // Display error message for empty description
+      } else {
+        displayError("job_category_error", "Valid category", false); // Display valid message for description
+      }
+    });
+
     // Function to display error message
     function displayError(elementId, errorMessage, isError) {
       var errorElement = document.getElementById(elementId);
@@ -938,7 +1153,7 @@ $id_category_options = $jobController->generateCategoryOptions();
     document.addEventListener("DOMContentLoaded", function() {
       // Function to check if all input fields are populated
       function checkInputFields() {
-        var inputs = document.querySelectorAll("#createJobForm input");
+        var inputs = document.querySelectorAll("#createJobForm input ,#description ,#category");
         var allPopulated = true;
         inputs.forEach(function(input) {
           if (input.value.trim() === "") {
@@ -955,7 +1170,7 @@ $id_category_options = $jobController->generateCategoryOptions();
       }
 
       // Listen for input event on each input field
-      var inputs = document.querySelectorAll("#createJobForm input");
+      var inputs = document.querySelectorAll("#createJobForm input ,#description ,#category");
       inputs.forEach(function(input) {
         input.addEventListener("input", function() {
           toggleSubmitButton();
@@ -972,6 +1187,28 @@ $id_category_options = $jobController->generateCategoryOptions();
   <!-- update JS -->
 
   <script>
+    // Function to handle file input change for job image
+    function handleJobImageChange(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const jobImage = document.getElementById('update_job_image_display');
+        const hiddenjobImageContainer = document.getElementById('hiddenJobImageContainer');
+
+        // Set the source of hidden job image
+        document.getElementById('hiddenJobImage').src = e.target.result;
+
+        // Show the hidden job image container and hide the displayed cover
+        jobImage.style.display = 'none';
+        hiddenjobImageContainer.style.display = 'block';
+
+        //console.log(e.target.result);
+      };
+
+      reader.readAsDataURL(file);
+    }
+
     document.getElementById("updateJobForm").addEventListener("submit", function(event) {
       // Reset previous error messages
 
@@ -1130,6 +1367,19 @@ $id_category_options = $jobController->generateCategoryOptions();
         displayError("update_description_error", "Description is required.", true); // Display error message for empty description
       } else {
         displayError("update_description_error", "Valid description", false); // Display valid message for description
+      }
+    });
+
+    // Listen for input event on description field
+    document.getElementById("update_category").addEventListener("input", function(event) {
+      var category = this.value.trim(); // Get value of description field
+      var categoryError = document.getElementById("update_category_error"); // Get error message element
+
+      // Validate if description is empty
+      if (category === "") {
+        displayError("update_category_error", "category is required.", true); // Display error message for empty description
+      } else {
+        displayError("update_category_error", "Valid category", false); // Display valid message for description
       }
     });
 

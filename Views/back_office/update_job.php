@@ -1,6 +1,6 @@
 <?php
 // Include the JobController
-require_once __DIR__ . '../../Controls/job_management/JobC.php';
+require_once __DIR__ . '../../../Controls/job_management/JobC.php';
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["update_job_id"])) {
@@ -15,24 +15,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["update_job_id"])) {
     // Create an instance of JobController
     $jobController = new JobController();
 
-    // Update the job information
-    $result = $jobController->updateJob($jobId, $title, $company, $location, $description, $salary,$category);
+    if (!empty($_FILES['job_image']['name']) && $_FILES['job_image']['error'] === 0) {
 
-    // Check if the update was successful
-    if ($result) {
-        // Redirect back to job management page or display a success message
-        header("Location: job_management.php");
-        exit();
-    } else {
-        // Handle update failure
-        // Redirect back to job management page or display an error message
-        header("Location: job_management.php?error=update_failed");
-        exit();
+        // Get profile photo and cover data
+        $job_image_tmp_name = $_FILES['job_image']['tmp_name'];
+        $job_image = file_get_contents($job_image_tmp_name);
+
+        // Only echo the result if the job update is successful
+        $result = $jobController->updateJob($job_id, $title, $company, $location, $description, $salary, $category, $job_image);
+
+        if ($result !== false) {
+            // Redirect to prevent form resubmission
+
+            header("Location: {$_SERVER['REQUEST_URI']}");
+            exit;
+        }
     }
-} else {
-    // Handle invalid form submission
-    // Redirect back to job management page or display an error message
-    header("Location: job_management.php?error=invalid_submission");
-    exit();
+
+    
 }
-?>
