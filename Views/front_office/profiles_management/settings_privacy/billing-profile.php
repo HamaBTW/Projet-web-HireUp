@@ -34,10 +34,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['profile_id'])) {
     <div class="container-xl px-4 mt-4">
         <!-- Account page navigation-->
         <nav class="nav nav-borders">
-            <a class="nav-link ms-0" href="./edit-profile.php?profile_id=<?php echo $profile['profile_id'] ?>"" target="__blank">Profile</a>
-            <a class="nav-link active" href="./billing-profile.php?profile_id=<?php echo $profile['profile_id'] ?>"" target="__blank">Billing</a>
-            <a class="nav-link" href="./security-profile.php?profile_id=<?php echo $profile['profile_id'] ?>"" target="__blank">Security</a>
-            <a class="nav-link" href="./notifications-profile.php?profile_id=<?php echo $profile['profile_id'] ?>"" target="__blank">Notifications</a>
+            <a class="nav-link ms-0" href="./edit-profile.php?profile_id=<?php echo $profile['profile_id'] ?>" >Profile</a>
+            <a class="nav-link active" href="./billing-profile.php?profile_id=<?php echo $profile['profile_id'] ?>">Billing</a>
+            <a class="nav-link" href="./security-profile.php?profile_id=<?php echo $profile['profile_id'] ?>">Security</a>
+            <a class="nav-link" href="./notifications-profile.php?profile_id=<?php echo $profile['profile_id'] ?>">Notifications</a>
         </nav>
         <hr class="mt-0 mb-4">
         <div class="row">

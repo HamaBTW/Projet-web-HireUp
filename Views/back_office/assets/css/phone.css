@@ -53,11 +53,15 @@
 
 .select-box .options {
   position: absolute;
-  top: 4rem;
+  top: calc(100% + 0.5rem); /* Adjusted positioning */
   width: 100%;
   background-color: var(--bs-body-bg);
   border-radius: 0.5rem;
   display: none;
+  z-index: 1000; /* Ensure it appears on top of other elements */
+  max-height: 15rem; /* Adjusted max height */
+  overflow-y: auto; /* Enable vertical scrolling */
+  border: 1px solid #ccc; /* Added border for better visibility */
 }
 
 .select-box .options.active {
@@ -79,6 +83,7 @@
   list-style: none;
   max-height: 23rem;
   overflow: overlay;
+  
 }
 
 .select-box ol::-webkit-scrollbar {
@@ -114,3 +119,5 @@
 .select-box ol li .country-name {
   margin-left: 0.4rem;
 }
+
+

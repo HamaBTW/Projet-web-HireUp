@@ -24,17 +24,66 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['profile_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../assets/css/security-profile.css">
+    <link rel="stylesheet" href="../assets/css/edit_profile.css" />
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css'>
     <title>Security</title>
 </head>
 <body>
+
+            <!-- Header Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+                <div class="container-fluid">
+                    <!-- Logo -->
+                    <a class="navbar-brand ms-4" href="../../index.html">
+                        <img class="logo-img" alt="HireUp">
+                    </a>
+
+                    <!-- Profile Dropdown -->
+                    <div class="dropdown ms-auto">
+                        <a href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" class="d-flex align-items-center justify-content-center mx-3" style="height: 100%;">
+                            <img src="data:image/jpeg;base64,<?= base64_encode($profile['profile_photo']) ?>" alt="Profile Photo" class="rounded-circle" width="50" height="50">
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                            <h5 class="dropdown-header">Account</h5>
+                            <li><a class="dropdown-item" href="../profile.php?profile_id=<?php echo $profile['profile_id'] ?>">Profile</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-header" href="#">Try Premium for $0</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="../profile-settings-privacy.php?profile_id=<?php echo $profile['profile_id'] ?>">Settings & Privacy</a></li>
+                            <li><a class="dropdown-item" href="#">Help</a></li>
+                            <li><a class="dropdown-item" href="./language_settings.php?profile_id=<?php echo $profile['profile_id'] ?>">Language</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <h5 class="dropdown-header">Manage</h5>
+                            <li><a class="dropdown-item" href="#">Posts & Activity</a></li>
+                            <li><a class="dropdown-item" href="#">Jobs</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#">Logout</a></li>
+                        </ul>
+                    </div>
+
+                </div>
+            </nav>
+            <!-- End Header Navbar -->
+
+            <hr>
+            <hr>
+            <hr>
+
 <div class="container-xl px-4 mt-4">
         <!-- Account page navigation-->
         <nav class="nav nav-borders">
-        <a class="nav-link  ms-0" href="./edit-profile.php?profile_id=<?php echo $profile['profile_id'] ?>"" target="__blank">Profile</a>
-        <a class="nav-link" href="./billing-profile.php?profile_id=<?php echo $profile['profile_id'] ?>"" target="__blank">Billing</a>
-        <a class="nav-link active" href="./security-profile.php?profile_id=<?php echo $profile['profile_id'] ?>"" target="__blank">Security</a>
-        <a class="nav-link" href="./notifications-profile.php?profile_id=<?php echo $profile['profile_id'] ?>""  target="__blank">Notifications</a>
+        <a class="nav-link  ms-0" href="./edit-profile.php?profile_id=<?php echo $profile['profile_id'] ?>">Profile</a>
+        <a class="nav-link" href="./billing-profile.php?profile_id=<?php echo $profile['profile_id'] ?>">Billing</a>
+        <a class="nav-link active" href="./security-profile.php?profile_id=<?php echo $profile['profile_id'] ?>">Security</a>
+        <a class="nav-link" href="./notifications-profile.php?profile_id=<?php echo $profile['profile_id'] ?>">Notifications</a>
         </nav>
         <hr class="mt-0 mb-4">
         <div class="row">
@@ -114,7 +163,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['profile_id'])) {
                             </div>
                             <div class="mt-3">
                                 <label class="small mb-1" for="twoFactorSMS">SMS Number</label>
-                                <input class="form-control" id="twoFactorSMS" type="tel" placeholder="Enter a phone number" value="555-123-4567">
+                                <input class="form-control" id="twoFactorSMS" type="tel" placeholder="Enter a phone number" value="<?php echo isset($profile['profile_phone_number']) ? $profile['profile_phone_number'] : ''; ?>"  readonly>
                             </div>
                         </form>
                     </div>

@@ -11,15 +11,91 @@ class ProfileC
         $this->conn = Config::getConnection(); // Get PDO connection
     }
 
-    public function listProfile()
+    public function listProfile($subscription = null, $authType = null, $accVerification = null)
+    {
+        if ($subscription || $authType || $accVerification) {
+            return $this->filterProfiles($subscription, $authType, $accVerification);
+        } else {
+            $tableName = "profile";
+            $query = $this->conn->query("SELECT * FROM $tableName");
+            $profiles = $query->fetchAll();
+            return $profiles;
+        }
+    }
+
+
+    public function filterProfiles($subscription, $authType, $accVerification)
     {
         $tableName = "profile";
 
-        $query = $this->conn->query("SELECT * FROM $tableName"); // Requête pour sélectionner tous les profiles
-        $profiles = $query->fetchAll(); // Récupérer tous les résultats
+        // Build the SQL query based on the selected filters
+        $sql = "SELECT * FROM $tableName WHERE 1=1";
 
-        return $profiles; // Retourner les profiles
+        if ($subscription) {
+            // Append subscription filter condition
+            $sql .= " AND profile_subscription = :subscription";
+        }
+        if ($authType) {
+            // Append authentication type filter condition
+            $sql .= " AND profile_auth = :authType";
+        }
+        if ($accVerification) {
+            // Append account verification filter condition
+            $sql .= " AND profile_acc_verif = :accVerification";
+        }
+
+        // Prepare and execute the query
+        $query = $this->conn->prepare($sql);
+        if ($subscription) {
+            $query->bindParam(':subscription', $subscription);
+        }
+        if ($authType) {
+            $query->bindParam(':authType', $authType);
+        }
+        if ($accVerification) {
+            $query->bindParam(':accVerification', $accVerification);
+        }
+        $query->execute();
+
+        // Fetch filtered profiles
+        $profiles = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        return $profiles;
     }
+
+
+    public function listProfileFilter($filterCheck)
+{
+    // Fetch filtered profiles based on the provided filter and search term
+    $tableName = "profile";
+    $sql = "SELECT * FROM $tableName WHERE 1=1";
+
+    // Append filter conditions if provided
+    if ($filterCheck) {
+        // Append filter condition
+        $sql .= " AND (profile_subscription = :subscription OR profile_auth = :authType OR profile_acc_verif = :accVerification)";
+    }
+
+    // Prepare the SQL query
+    $query = $this->conn->prepare($sql);
+
+    // Bind filter parameters if provided
+    if ($filterCheck) {
+        $query->bindParam(':subscription', $filterCheck);
+        $query->bindParam(':authType', $filterCheck);
+        $query->bindParam(':accVerification', $filterCheck);
+    }
+
+    // Execute the query
+    $query->execute();
+
+    // Fetch filtered profiles
+    $profiles = $query->fetchAll(PDO::FETCH_ASSOC);
+
+    return $profiles;
+}
+
+
 
     public function deleteProfile($id)
     {
@@ -53,7 +129,7 @@ class ProfileC
             'profile_subscription' => $profile_subscription,
             'profile_auth' => $profile_auth,
             'profile_acc_verif' => $profile_acc_verif,
-            'profile_bday' => $profile_bday, 
+            'profile_bday' => $profile_bday,
             'profile_gender' => $profile_gender,
             'profile_photo' => $profile_photo,
             'profile_cover' => $profile_cover
@@ -105,8 +181,8 @@ class ProfileC
             'profile_education' => $profile_education,
             'profile_subscription' => $profile_subscription,
             'profile_auth' => $profile_auth,
-            'profile_acc_verif' => $profile_acc_verif, 
-            'profile_bday' => $profile_bday, 
+            'profile_acc_verif' => $profile_acc_verif,
+            'profile_bday' => $profile_bday,
             'profile_gender' => $profile_gender
         ]);
     }
@@ -270,6 +346,7 @@ class ProfileC
         return $query->rowCount() > 0;
     }
 
+    
     public function updateProfileDetailsWithoutImage($id, $first_name, $family_name, $profile_region, $profile_city, $profile_bio, $profile_current_position, $profile_education, $profile_bday, $profile_gender)
     {
         $tableName = "profile";
@@ -302,6 +379,7 @@ class ProfileC
         return $query->rowCount() > 0;
     }
 
+
     public function updateProfileNamesBioPictures($id, $first_name, $family_name, $bio, $profile_photo_data, $profile_cover_data)
     {
         $tableName = "profile";
@@ -320,7 +398,6 @@ class ProfileC
         // Check if the update was successful
         return $query->rowCount() > 0;
     }
-
 
 
     // Function to search profiles based on a search term
@@ -478,6 +555,28 @@ class ProfileC
     }
 
 
+    public function generateSubsOptionsCheckbox()
+    {
+        try {
+            // Fetching the subscription IDs and plan names from the database
+            $sql = "SELECT subscription_id, plan_name FROM subscriptions";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+
+            // Generating the <option> tags
+            $options = '';
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $options .= '<input class="form-check-input" type="checkbox" value="login" id="' .  $row['plan_name'] . '">' .  '<label class="form-check-label ms-2" for="' .  $row['plan_name'] . '" >' . $row['plan_name'] . '</label><br>';
+            }
+
+            return $options;
+        } catch (PDOException $e) {
+            die('Error: ' . $e->getMessage());
+        }
+    }
+
+
+
     public function generateSubsOptionsUpdate($selectedsubscription_id)
     {
         try {
@@ -519,5 +618,11 @@ class ProfileC
         } catch (PDOException $e) {
             die('Error:' . $e->getMessage());
         }
+    }
+
+    // Function to generate a random 4-digit verification code
+    public function generateVerificationCode()
+    {
+        return str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
     }
 }

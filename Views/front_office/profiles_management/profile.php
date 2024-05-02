@@ -33,6 +33,11 @@ if (!$profile) {
   exit();
 }
 
+$notifications = [
+  ['id' => 1, 'message' => 'New message received', 'created_at' => '2024-04-28 09:30:00'],
+  ['id' => 2, 'message' => 'You have a meeting reminder', 'created_at' => '2024-04-27 15:45:00']
+];
+
 ?>
 
 <!DOCTYPE html>
@@ -49,7 +54,7 @@ if (!$profile) {
   <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css'>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./assets/css/profile_style.css">
-
+  <link rel="stylesheet" href="./assets/css/search_input.css">
 
 </head>
 
@@ -63,42 +68,104 @@ if (!$profile) {
         <img class="logo-img" alt="HireUp">
       </a>
 
-      <!-- Profile Dropdown -->
-      <div class="dropdown ms-auto">
+      <form class="form me-auto">
+        <label for="search">
+          <input class="input" type="text" required="" placeholder="Search twitter" id="search">
+          <div class="fancy-bg"></div>
+          <div class="search">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="r-14j79pv r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-4wgw6l r-f727ji r-bnwqim r-1plcrui r-lrvibr">
+              <g>
+                <path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path>
+              </g>
+            </svg>
+          </div>
+          <button class="close-btn" type="reset">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+            </svg>
+          </button>
+        </label>
+      </form>
+
+
+
+      <!-- Profile Dropdown and Buttons Bar -->
+      <div class="dropdown d-flex align-items-center">
+        <!-- Buttons Bar -->
+        <div class="d-flex">
+          
+          <button class="btn rounded_button_bar me-3">
+            <i class="fa fa-user-plus"></i>
+          </button>
+
+          <!-- Messaging Button -->
+          <button class="btn rounded_button_bar me-3">
+            <i class="fa fa-regular fa-comments"></i>
+          </button>
+          <!-- Notification Dropdown -->
+          <div class="dropdown">
+            <button class="btn rounded_button_bar me-3" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa fa-regular fa-bell"></i>
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- Profile Photo -->
         <a href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" class="d-flex align-items-center justify-content-center mx-3" style="height: 100%;">
           <img src="data:image/jpeg;base64,<?= base64_encode($profile['profile_photo']) ?>" alt="Profile Photo" class="rounded-circle" width="50" height="50">
         </a>
+
+        <!-- Profile Dropdown Menu -->
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+          <!-- Dropdown Header -->
           <h5 class="dropdown-header">Account</h5>
-          <li><a class="dropdown-item" href="./profile.php?profile_id=<?php echo $profile['profile_id']?>">Profile</a></li>
+          <!-- Profile Link -->
+          <li><a class="dropdown-item" href="./profile.php?profile_id=<?php echo $profile['profile_id'] ?>">Profile</a></li>
+          <!-- Divider -->
           <li>
             <hr class="dropdown-divider">
           </li>
-          <li><a class="dropdown-header" href="./subscription/subscriptionCards.php?profile_id=<?php echo $profile['profile_id']?>">Try Premium for $0</a></li>
+          <!-- Try Premium -->
+          <li><a class="dropdown-header" href="./subscription/subscriptionCards.php?profile_id=<?php echo $profile['profile_id'] ?>">Try Premium for $0</a></li>
+          <!-- Divider -->
           <li>
             <hr class="dropdown-divider">
           </li>
+          <!-- Settings & Privacy -->
           <li><a class="dropdown-item" href="./profile-settings-privacy.php?profile_id=<?php echo $profile['profile_id'] ?>">Settings & Privacy</a></li>
+          <!-- Help Link -->
           <li><a class="dropdown-item" href="#">Help</a></li>
+          <!-- Language Link -->
           <li><a class="dropdown-item" href="#">Language</a></li>
+          <!-- Divider -->
           <li>
             <hr class="dropdown-divider">
           </li>
+          <!-- Manage Header -->
           <h5 class="dropdown-header">Manage</h5>
+          <!-- Posts & Activity Link -->
           <li><a class="dropdown-item" href="#">Posts & Activity</a></li>
+          <!-- Jobs Link -->
           <li><a class="dropdown-item" href="#">Jobs</a></li>
+          <!-- Divider -->
           <li>
             <hr class="dropdown-divider">
           </li>
+          <!-- Logout Link -->
           <li><a class="dropdown-item" href="#">Logout</a></li>
         </ul>
       </div>
-
     </div>
   </nav>
   <!-- End Header Navbar -->
 
-  <div class="container">
+
+
+
+  <div class="container"> 
     <div class="card overflow-hidden">
       <div class="card-body p-0">
         <!-- Profile cover photo -->
@@ -161,7 +228,7 @@ if (!$profile) {
             <!-- Add Story button -->
             <div class="col-lg-4 order-last">
               <div class="text-center mt-3 mt-lg-0">
-                <button class="btn btn-primary btn-sm rounded-pill px-4 py-2">Follow</button>
+                <button class="btn btn-refuse-user btn-sm rounded-pill px-4 py-2"><i class="fas me-2">&#xf057;</i><b>Refuse</b></button>
               </div>
             </div>
           </div>
@@ -341,7 +408,7 @@ if (!$profile) {
 
             <!-- Edit Details Button -->
             <div>
-              <a href="./profile_update.php?profile_id=<?php echo $profile['profile_id']?>" class="btn edit-details-button w-100"><strong>Edit Details</strong></a>
+              <a href="./profile_update.php?profile_id=<?php echo $profile['profile_id'] ?>" class="btn edit-details-button w-100"><strong>Edit Details</strong></a>
             </div>
           </div>
         </div>

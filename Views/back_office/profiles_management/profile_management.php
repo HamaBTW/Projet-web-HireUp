@@ -12,6 +12,7 @@ $test = '624920';
 // Call the method to fetch the employees' data
 $profiles = $profileController->listProfile();
 $Subs_options = $profileController->generateSubsOptions();
+$subs = $profileController->generateSubsOptionsCheckbox();
 ?>
 
 <!DOCTYPE html>
@@ -42,7 +43,7 @@ $Subs_options = $profileController->generateSubsOptions();
       transition: opacity 0.3s ease;
     }
 
-    #addProfileForm #profileForm .mb-3 span {
+    #addProfileForm #profileForm .mb-3>span {
       position: absolute;
       bottom: 8.5px;
       right: 8.5px;
@@ -60,9 +61,8 @@ $Subs_options = $profileController->generateSubsOptions();
       font-size: medium;
       margin-left: 15px;
     }
-
-    /* Add any additional styles for dark mode here */
   </style>
+
 </head>
 
 <body>
@@ -270,19 +270,23 @@ $Subs_options = $profileController->generateSubsOptions();
                     <div class="select-box">
                       <label for="phoneNumber" class="form-label">Phone Number</label>
                       <div class="selected-option">
-                        <div>
+                        <div id="selected-country">
                           <span class="iconify" data-icon="flag:tn-4x3"></span>
                           <strong>+216</strong>
                         </div>
-                        <input type="tel" class="form-control" id="profile_phone_number" name="profile_phone_number" value="<?php echo isset($profile['profile_phone_number']) ? $profile['profile_phone_number'] : ''; ?>" />
-                        <div class="phone_error"></div>
+                        <input type="tel" class="form-control" id="profile_phone_number" name="profile_phone_number" />
                       </div>
                       <div class="options">
                         <input type="text" id="search-box" name="search-box" class="form-control search-box" placeholder="Search Country Name">
-                        <ol></ol>
+                        <ol>
+
+                          <!-- Add more country options as needed -->
+                        </ol>
                       </div>
                     </div>
                   </div>
+
+
 
                   <div class="mb-3">
                     <label for="country" class="form-label">Country/Region</label>
@@ -509,75 +513,61 @@ $Subs_options = $profileController->generateSubsOptions();
                 <h5 class="modal-title" id="sortModalLabel">Filter Profiles</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="modal-body">
-                <!-- Subscription options -->
-                <div class="mb-3">
-                  <h6>Subscription</h6>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="basic" id="subscriptionBasic">
-                    <label class="form-check-label" for="subscriptionBasic">
-                      Basic
-                    </label>
+              <form id="filterForm" action="filtered_profiles.php" method="post"> <!-- Updated form element -->
+                <div class="modal-body">
+                  <!-- Subscription options -->
+                  <div class="mb-3">
+                    <h6>Subscription</h6>
+                    <?php echo $subs; ?>
                   </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="advanced" id="subscriptionAdvanced">
-                    <label class="form-check-label" for="subscriptionAdvanced">
-                      Advanced
-                    </label>
+                  <!-- Authentication Type options -->
+                  <div class="mb-3">
+                    <h6>Authentication Type</h6>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="login" id="authTypeLogin">
+                      <label class="form-check-label" for="authTypeLogin">
+                        Login Credentials
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="social" id="authTypeSocial">
+                      <label class="form-check-label" for="authTypeSocial">
+                        Social Login
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="multi" id="authTypeMulti">
+                      <label class="form-check-label" for="authTypeMulti">
+                        Multi-Factor Authentication (MFA)
+                      </label>
+                    </div>
                   </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="premium" id="subscriptionPremium">
-                    <label class="form-check-label" for="subscriptionPremium">
-                      Premium
-                    </label>
-                  </div>
-                </div>
-                <!-- Authentication Type options -->
-                <div class="mb-3">
-                  <h6>Authentication Type</h6>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="login" id="authTypeLogin">
-                    <label class="form-check-label" for="authTypeLogin">
-                      Login Credentials
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="social" id="authTypeSocial">
-                    <label class="form-check-label" for="authTypeSocial">
-                      Social Login
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="multi" id="authTypeMulti">
-                    <label class="form-check-label" for="authTypeMulti">
-                      Multi-Factor Authentication (MFA)
-                    </label>
-                  </div>
-                </div>
-                <!-- Account Verification options -->
-                <div class="mb-3">
-                  <h6>Account Verification</h6>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="verified" id="accountVerified">
-                    <label class="form-check-label" for="accountVerified">
-                      Verified
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="notverified" id="accountNotVerified">
-                    <label class="form-check-label" for="accountNotVerified">
-                      Not Verified
-                    </label>
+                  <!-- Account Verification options -->
+                  <div class="mb-3">
+                    <h6>Account Verification</h6>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="verified" id="accountVerified">
+                      <label class="form-check-label" for="accountVerified">
+                        Verified
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="notverified" id="accountNotVerified">
+                      <label class="form-check-label" for="accountNotVerified">
+                        Not Verified
+                      </label>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary">Confirm</button>
-              </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" id="applyFilter" class="btn btn-primary">Apply Filter</button> <!-- Submit button -->
+                </div>
+              </form>
             </div>
           </div>
         </div>
+        <!-- End -->
 
       </div>
     </div>
@@ -601,6 +591,61 @@ $Subs_options = $profileController->generateSubsOptions();
         form.style.display = 'none';
       }
     });
+
+    // Listen for changes in the filter form submission
+    document.getElementById('filterForm').addEventListener('submit', function(event) {
+      // Prevent the default form submission behavior
+      event.preventDefault();
+
+      // Get the selected subscription options
+      var selectedSubscriptions = [];
+      var subscriptionCheckboxes = document.querySelectorAll('input[name="subscription"]:checked');
+      subscriptionCheckboxes.forEach(function(checkbox) {
+        selectedSubscriptions.push(checkbox.value);
+      });
+
+      // Get the selected authentication type options
+      var selectedAuthTypes = [];
+      var authTypeCheckboxes = document.querySelectorAll('input[name="authType"]:checked');
+      authTypeCheckboxes.forEach(function(checkbox) {
+        selectedAuthTypes.push(checkbox.value);
+      });
+
+      // Get the selected account verification options
+      var selectedAccountVerification = [];
+      var accountVerificationCheckboxes = document.querySelectorAll('input[name="accountVerification"]:checked');
+      accountVerificationCheckboxes.forEach(function(checkbox) {
+        selectedAccountVerification.push(checkbox.value);
+      });
+
+      // Create a new XMLHttpRequest object
+      var xhttp = new XMLHttpRequest();
+
+      // Define the callback function to handle the response
+      xhttp.onreadystatechange = function() {
+        if (this.readyState === 4 && this.status === 200) {
+          // Update the table with the response
+          document.getElementById('profileTableBody').innerHTML = this.responseText;
+          // Close the modal after updating the table
+          var modal = bootstrap.Modal.getInstance(document.getElementById('sortModal'));
+          modal.hide();
+        }
+      };
+
+      // Prepare the filter options as URL parameters
+      var params = new URLSearchParams();
+      params.append('subscriptions', selectedSubscriptions.join(','));
+      params.append('authTypes', selectedAuthTypes.join(','));
+      params.append('accountVerification', selectedAccountVerification.join(','));
+
+      // Open a GET request to the filtered_profiles.php with query parameters
+      xhttp.open('GET', 'filtered_profiles.php?' + params.toString(), true);
+      xhttp.send();
+    });
+
+
+
+
 
     // Listen for changes in the search input field
     document.getElementById('searchInput').addEventListener('input', function() {

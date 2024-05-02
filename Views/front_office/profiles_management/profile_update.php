@@ -49,6 +49,27 @@ if (!$profile) {
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css'>
     <link rel="stylesheet" href="./assets/css/profile_update_style.css">
 
+    <style>
+        .rounded_button_bar {
+            border-radius: 25px;
+            /* Adjust the border radius as needed */
+            width: 50px;
+            /* Adjust the width of the buttons */
+            height: 50px;
+            /* Adjust the height of the buttons */
+            font-size: 22px;
+            /* Adjust the font size of the icons */
+            padding: 0;
+            /* Remove padding to make the buttons tighter */
+        }
+
+        .rounded_button_bar:hover {
+            background-color: rgba(97, 103, 122, 0.5);
+            color: #272829;
+            border: none;
+        }
+    </style>
+
 </head>
 
 <body>
@@ -61,37 +82,66 @@ if (!$profile) {
                 <img class="logo-img" alt="HireUp">
             </a>
 
-            <!-- Profile Dropdown -->
-            <div class="dropdown ms-auto">
+            <!-- Profile Dropdown and Buttons Bar -->
+            <div class="dropdown d-flex align-items-center">
+                <!-- Buttons Bar -->
+                <div class="d-flex">
+                    <!-- Messaging Button -->
+                    <button class="btn rounded_button_bar me-3">
+                        <i class="fa fa-regular fa-comments"></i>
+                    </button>
+                    <!-- Notification Button -->
+                    <button class="btn rounded_button_bar me-3">
+                        <i class="fa fa-regular fa-bell"></i>
+                    </button>
+                </div>
+
+
+                <!-- Profile Photo -->
                 <a href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" class="d-flex align-items-center justify-content-center mx-3" style="height: 100%;">
                     <img src="data:image/jpeg;base64,<?= base64_encode($profile['profile_photo']) ?>" alt="Profile Photo" class="rounded-circle" width="50" height="50">
                 </a>
+
+                <!-- Profile Dropdown Menu -->
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                    <!-- Dropdown Header -->
                     <h5 class="dropdown-header">Account</h5>
-                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                    <!-- Profile Link -->
+                    <li><a class="dropdown-item" href="./profile.php?profile_id=<?php echo $profile['profile_id'] ?>">Profile</a></li>
+                    <!-- Divider -->
                     <li>
                         <hr class="dropdown-divider">
                     </li>
-                    <li><a class="dropdown-header" href="#">Try Premium for $0</a></li>
+                    <!-- Try Premium -->
+                    <li><a class="dropdown-header" href="./subscription/subscriptionCards.php?profile_id=<?php echo $profile['profile_id'] ?>">Try Premium for $0</a></li>
+                    <!-- Divider -->
                     <li>
                         <hr class="dropdown-divider">
                     </li>
-                    <li><a class="dropdown-item" href="#">Settings & Privacy</a></li>
+                    <!-- Settings & Privacy -->
+                    <li><a class="dropdown-item" href="./profile-settings-privacy.php?profile_id=<?php echo $profile['profile_id'] ?>">Settings & Privacy</a></li>
+                    <!-- Help Link -->
                     <li><a class="dropdown-item" href="#">Help</a></li>
+                    <!-- Language Link -->
                     <li><a class="dropdown-item" href="#">Language</a></li>
+                    <!-- Divider -->
                     <li>
                         <hr class="dropdown-divider">
                     </li>
+                    <!-- Manage Header -->
                     <h5 class="dropdown-header">Manage</h5>
+                    <!-- Posts & Activity Link -->
                     <li><a class="dropdown-item" href="#">Posts & Activity</a></li>
+                    <!-- Jobs Link -->
                     <li><a class="dropdown-item" href="#">Jobs</a></li>
+                    <!-- Divider -->
                     <li>
                         <hr class="dropdown-divider">
                     </li>
+                    <!-- Logout Link -->
                     <li><a class="dropdown-item" href="#">Logout</a></li>
                 </ul>
             </div>
-
         </div>
     </nav>
     <!-- End Header Navbar -->

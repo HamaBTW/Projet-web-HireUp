@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action"]) && $_POST["a
       position: relative;
     }
 
-    .input_field span {
+    .input_field > span {
       position: absolute;
       bottom: 8.5px;
       right: 8.5px;

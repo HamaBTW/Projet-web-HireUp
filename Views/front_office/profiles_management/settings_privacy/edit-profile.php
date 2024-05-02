@@ -2,19 +2,26 @@
 
 require_once __DIR__ . '/../../../../Controls/profileController.php';
 
+
 // Check if the request method is GET and if id_emp is set in the URL
 if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['profile_id'])) {
-    // Retrieve the profilee information from the database
+    // Retrieve the profile information from the database
     $id = $_GET['profile_id'];
 
     // Create an instance of the controller
     $profileController = new ProfileC();
 
-    // Get the profilee details by ID
+    $prf = new ProfileC();
+
+    // Generate the verification code
+    $code = $prf->generateVerificationCode();
+
+    // Get the profile details by ID
     $profile = $profileController->getProfileById($id);
 
     // Check if profile is set and not null
     if ($profile) {
+
 ?>
 
         <!DOCTYPE html>
@@ -27,7 +34,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['profile_id'])) {
             <title>Settings & Privacy</title>
             <link rel="shortcut icon" type="image/png" href="../../../back_office/assets/images/logos/HireUp_icon.ico" />
             <link rel="stylesheet" href="../assets/css/edit_profile.css" />
-            <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css'>
+            <link rel="stylesheet" href="../assets/css/verifNumber_form.css" />
+            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+
 
         </head>
 
@@ -119,6 +129,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['profile_id'])) {
 
 
                     </div>
+
+
+
                     <div class="col-xl-8">
                         <!-- Account details card-->
                         <div class="card mb-4">
@@ -150,15 +163,19 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['profile_id'])) {
                                     </div>
                                     <!-- Form Row-->
                                     <div class="row gx-3 mb-3">
-                                        <!-- Form Group (phone number)-->
+                                        <!-- Form Group (Gender)-->
                                         <div class="col-md-6">
-                                            <label class="small mb-1" for="inputPhone">Phone number</label>
-                                            <input class="form-control" id="inputPhone" type="tel" placeholder="Enter your phone number" value="555-123-4567">
+                                            <label class="small mb-1" for="inputPhone">Gender</label>
+                                            <select class="form-select" onchange="validateGender()" id="profile_gender" name="profile_gender">
+                                                <option value="" selected disabled>Select Gender</option>
+                                                <option value="Male" <?php echo isset($profile['profile_gender']) && strtolower($profile['profile_gender']) === 'male' ? 'selected' : ''; ?>>Male</option>
+                                                <option value="Female" <?php echo isset($profile['profile_gender']) && strtolower($profile['profile_gender']) === 'female' ? 'selected' : ''; ?>>Female</option>
+                                            </select>
                                         </div>
                                         <!-- Form Group (birthday)-->
                                         <div class="col-md-6">
                                             <label class="small mb-1" for="inputBirthday">Birthday</label>
-                                            <input class="form-control" id="inputBirthday" type="date" name="birthday" placeholder="Enter your birthday">
+                                            <input type="date" class="form-control" onchange="validateBDay()" id="profile_bday" name="profile_bday" value="<?php echo isset($profile['profile_bday']) ? $profile['profile_bday'] : ''; ?>" />
                                         </div>
                                     </div>
                                     <!-- Form Row -->
@@ -181,6 +198,26 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['profile_id'])) {
                             </div>
                         </div>
                     </div>
+
+                    <div class="col-xl-4">
+                        <!-- Profile picture card-->
+                        <div class="card mb-4 mb-xl-0">
+                            <div class="card-header">Phone Number</div>
+                            <div class="card-body text-center">
+                                <!-- Profile picture help block-->
+                                <div class="small font-italic text-muted mb-2">Verify your Phone Number</div>
+                                <form id="profileFormPhone" method="POST">
+                                    <input type="hidden" name="action" value="verif">
+                                    <input type="hidden" class="form-control" id="profile_id" value="<?php echo isset($profile['profile_id']) ? $profile['profile_id'] : ''; ?>">
+                                    <input type="hidden" name="verification_code" id="verification_code" value="<?php echo $code ?>">
+                                    <div class="mb-3">
+                                        <input type="text" class="form-control" id="profile_phone_number" placeholder="Enter Phone Number..." name="update_profile_phone_number" value="<?php echo isset($profile['profile_phone_number']) ? $profile['profile_phone_number'] : ''; ?>">
+                                    </div>
+                                    <button type="button" id="update_number_button" class="btn btn-primary">Update New Number</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -190,6 +227,29 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['profile_id'])) {
                     <p>&copy; 2024 All rights reserved to <b>be.net</b></p>
                 </div>
             </footer>
+
+            <!-- Verification form -->
+            <div class="verification-modal">
+                <form class="form verification-form" action="./update-phone.php" method="POST">
+                    <span class="close">&times;</span>
+                    <div class="info">
+                        <span class="title">Two-Factor Verification</span>
+                        <p class="description">Enter the verification code sent to your new phone number</p>
+                    </div>
+                    <div class="input-fields">
+                        <input placeholder="" type="tel" maxlength="1" name="digit1" class="digit-input" require>
+                        <input placeholder="" type="tel" maxlength="1" name="digit2" class="digit-input" require>
+                        <input placeholder="" type="tel" maxlength="1" name="digit3" class="digit-input" require>
+                        <input placeholder="" type="tel" maxlength="1" name="digit4" class="digit-input" require>
+                    </div>
+                    <input type="hidden" class="form-control" id="profile_id" value="<?php echo isset($profile['profile_id']) ? $profile['profile_id'] : ''; ?>">
+                    <input type="hidden" name="verification_code" id="verification_code" value="<?php echo $code ?>">
+                    <div class="action-btns">
+                        <button type="button" id="verifyButton" class="verify">Verify</button>
+                        <button type="button" class="clear">Clear</button>
+                    </div>
+                </form>
+            </div>
 
             <!-- Alert Popup 
             <div class="alert-popup" id="alertPopup">
@@ -204,7 +264,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['profile_id'])) {
                 <button class="close-btn" onclick="closeAlertPopup()">Close</button>
             </div>-->
 
-            <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js'></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 
             <script>
                 // Function to handle file input change for profile photo
@@ -266,17 +327,75 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['profile_id'])) {
                 }
             </script>
 
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const updateNumberButton = document.getElementById("update_number_button");
+                    const verificationModal = document.querySelector(".verification-modal");
+
+                    // Update number button click event
+                    updateNumberButton.addEventListener("click", function() {
+                        // Show verification form
+                        verificationModal.style.display = "block";
+                        // Disable scrolling
+                        document.body.style.overflow = "hidden";
+                    });
+
+                    // Close verification form
+                    document.querySelector(".verification-modal .close").addEventListener("click", function() {
+                        verificationModal.style.display = "none";
+                        // Enable scrolling
+                        document.body.style.overflow = "auto";
+
+                        <?php $code = $prf->generateVerificationCode() ?>
+                    });
+
+
+                    // Clear button click event
+                    document.querySelector(".verification-modal .clear").addEventListener("click", function() {
+                        // Clear input fields
+                        document.querySelectorAll(".verification-modal .input-fields input").forEach(function(input) {
+                            input.value = "";
+                        });
+                    });
+                });
+            </script>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const verifyButton = document.getElementById("verifyButton");
+                    const digitInputs = document.querySelectorAll(".digit-input");
+
+                    // Verify button click event
+                    verifyButton.addEventListener("click", function() {
+                        // Concatenate the input values
+                        const verificationCode = Array.from(digitInputs).map(input => input.value).join("");
+
+                        // Set the concatenated verification code to a hidden input field
+                        document.querySelector(".verification-modal form").innerHTML += `<input type="hidden" name="verification_code_input" value="${verificationCode}">`;
+
+                        // Submit the form
+                        document.querySelector(".verification-modal form").submit();
+                    });
+
+                    // Clear button click event
+                    document.querySelector(".verification-modal .clear").addEventListener("click", function() {
+                        // Clear input fields
+                        digitInputs.forEach(function(input) {
+                            input.value = "";
+                        });
+                    });
+                });
+            </script>
+
         </body>
 
         </html>
 
 <?php
+
     } else {
-        // profilee not found or null, handle this case
-        echo "profile not found or null";
+        // Profile not found or null, handle this case
+        echo "Profile not found or null";
     }
-} else {
-    // Invalid request, handle this case
-    echo "Invalid request";
 }
 ?>

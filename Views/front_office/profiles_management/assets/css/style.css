@@ -30,7 +30,7 @@
 body {
   padding-top: 20px;
   background: var(--bs-body-bg);
-  color: var(--text-color);
+  color: var(--text-color);  
 }
 .img-fluid {
   max-width: 100%;
