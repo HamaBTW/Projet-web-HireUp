@@ -2,10 +2,10 @@
 
 class User{
 
-    private $id, $user_name, $email, $password, $role, $verified, $banned, $date;
+    private $id, $user_name, $email, $password, $role, $verified, $banned, $date, $account_type, $need_password_change;
 
 
-    public function __construct($id, $user_name, $email, $password, $role, $verified, $banned, $date){
+    public function __construct($id, $user_name, $email, $password, $role, $verified, $banned, $date, $account_type='hireup', $need_password_change='false'){
         $this->id = $id;
         $this->user_name = $user_name;
         $this->email = $email;
@@ -14,6 +14,8 @@ class User{
         $this->verified = $verified;
         $this->banned = $banned;
         $this->date = $date;
+        $this->account_type = $account_type;
+        $this->need_password_change = $need_password_change;
     }
 
     public function set_id($val){
@@ -81,7 +83,23 @@ class User{
     public function get_date(){
         return $this->date;
     }
+
+    public function set_account_type($val){
+        $this->account_type = $val;
+    }
+
+    public function get_account_type(){
+        return $this->account_type;
+    }
     
+
+    public function set_need_password_change($val){
+        $this->need_password_change = $val;
+    }
+
+    public function get_need_password_change(){
+        return $this->need_password_change;
+    }
 
 }
 

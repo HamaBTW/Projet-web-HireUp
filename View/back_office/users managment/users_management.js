@@ -49,3 +49,19 @@ function verif_users_managemet_inputs(){
     return true;
 
 }
+
+
+function togglePasswordVisibility() {
+    var passwordInput = document.getElementById("password");
+    var eyeIcon = document.getElementById("eye-icon");
+
+    if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        eyeIcon.className = "fa-solid fa-eye";
+    } else {
+        passwordInput.type = "password";
+        eyeIcon.className = "fa-solid fa-eye-slash";
+    }
+}
+
+

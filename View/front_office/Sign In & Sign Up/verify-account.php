@@ -64,6 +64,14 @@ include '../../../Controller/user_con.php';
 ?>
 
 <body>
+
+<?php 
+$block_call_back = 'true';
+$access_level = "else";
+$special_case = 'user_verification';
+include('./../../../View/callback.php')  
+?>
+
   <!--  Body Wrapper -->
   <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
     data-sidebar-position="fixed" data-header-position="fixed">
@@ -112,7 +120,7 @@ include '../../../Controller/user_con.php';
   <script src="../../../assets/libs/jquery/dist/jquery.min.js"></script>
   <script src="../../../assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
-  <script src="./SignIn_SignUp_js.js"></script>
+  <script src="./SignIn_SignUp.js"></script>
 
   <!-- php error check -->
   <?php

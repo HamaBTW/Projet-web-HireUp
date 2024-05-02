@@ -3,6 +3,10 @@
 include '../../../Controller/user_con.php';
 include '../../../Model/user.php';
 
+include '../../../Controller/stats_con.php';
+
+$statsC = new StatsCon("stats");
+
 // Création d'une instance du contrôleur des événements
 $userC = new userCon("user");
 
@@ -63,6 +67,12 @@ if (
         }
 
         $userC->addUser($user);
+        
+        // add stats
+        $currentDate = date("Y-m-d");
+
+        $statsC->addUserAccountCreatedInStat($currentDate);
+        
         $success_message = "Account created successfully!";
         header('Location: ../../../View/front_office/Sign In & Sign Up/authentication-login.php?success_global=' . urlencode($success_message) . '&user_name_email=' . urlencode($user->get_user_name()));
         exit(); // Make sure to stop further execution after redirection

@@ -11,6 +11,9 @@ require 'phpmailer/src/PHPMailer.php';
 require 'phpmailer/src/SMTP.php';
 
 
+require_once 'vendor/autoload.php';
+
+
 
 class userCon{
 
@@ -86,7 +89,7 @@ class userCon{
 
     public function addUser($user)
     {
-        $sql = "INSERT INTO $this->tab_name(id, user_name, email, password, role, verified, banned, date) VALUES (:id, :user_name, :email, :password, :role, :verified, :banned, :date)";
+        $sql = "INSERT INTO $this->tab_name(id, user_name, email, password, role, verified, banned, date, account_type, need_password_change) VALUES (:id, :user_name, :email, :password, :role, :verified, :banned, :date, :account_type, :need_password_change)";
         $db = config::getConnexion();
         try {
             $query = $db->prepare($sql);
@@ -99,7 +102,9 @@ class userCon{
                 'role' => $user->get_role(),
                 'verified' => $user->get_verified(),
                 'banned' => $user->get_banned(),
-                'date' => $user->get_date()
+                'date' => $user->get_date(),
+                'account_type' => $user->get_account_type(),
+                'need_password_change' => $user->get_need_password_change()
                 ]
             );
         } catch (Exception $e) {
@@ -645,10 +650,10 @@ class userCon{
 
     }
 
-    public function searchUser($by, $keyword, $role, $verified, $banned){
+    public function searchUser($by, $keyword, $role, $verified, $banned, $need_pass_chn){
 
         if ($by == "everything"){
-            $sql = "SELECT * FROM $this->tab_name WHERE email LIKE '%$keyword%' OR user_name LIKE '%$keyword%' OR password LIKE '%$keyword%' OR id LIKE '%$keyword%'";
+            $sql = "SELECT * FROM $this->tab_name WHERE (email LIKE '%$keyword%' OR user_name LIKE '%$keyword%' OR password LIKE '%$keyword%' OR id LIKE '%$keyword%')";
         }
         else{
             $sql = "SELECT * FROM $this->tab_name WHERE $by LIKE '%$keyword%'";
@@ -664,6 +669,10 @@ class userCon{
 
         if ($banned != "none"){
             $sql .= " AND banned = '$banned'";
+        }
+
+        if ($need_pass_chn != "none"){
+            $sql .= " AND need_password_change = '$need_pass_chn'";
         }
 
         $db = config::getConnexion();
@@ -681,7 +690,7 @@ class userCon{
 
     }
 
-    public function searchUserSorted($by, $keyword, $role, $verified, $banned){
+    public function searchUserSorted($by, $keyword, $role, $verified, $banned, $need_pass_chn){
 
         if ($by == "everything"){
             $sql = "SELECT * FROM $this->tab_name WHERE email LIKE '%$keyword%' OR user_name LIKE '%$keyword%' OR password LIKE '%$keyword%' OR id LIKE '%$keyword%'";
@@ -700,6 +709,10 @@ class userCon{
 
         if ($banned != "none"){
             $sql .= " AND banned = '$banned'";
+        }
+
+        if ($need_pass_chn != "none"){
+            $sql .= " AND need_password_change = '$need_pass_chn'";
         }
 
         // add order by
@@ -724,6 +737,144 @@ class userCon{
         }        
 
     }
+
+    public function userExistsInDataBase($id) {
+        $db = config::getConnexion();
+
+        $sql = "SELECT COUNT(*) as count FROM $this->tab_name WHERE id = :id";
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':id', $id);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['count'] > 0;
+        } catch (Exception $e) {
+            die('Error:' . $e->getMessage());
+        }
+    }
+
+    public function get_user_name_out_of_google_name($name) {
+
+        $string_without_quotes = str_replace(' ', '_', $name);
+    
+        do {
+            $random_number = rand(1, 8);
+
+            $generated_nb = $this->generateId($random_number);
+
+            $user_name = $string_without_quotes . $generated_nb;
+
+        } while ($this->userNameExists($user_name));
+
+        return $user_name;
+    
+    }
+
+    public function get_account_type_by_id($id){
+        
+        $db = config::getConnexion();
+
+        $sql = "SELECT * FROM $this->tab_name WHERE id = :id";
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':id', $id);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result) {
+                return $result['account_type'];
+            } else {
+                return "error";
+            }
+
+        } catch (Exception $e) {
+            die('Error:' . $e->getMessage());
+        }
+        
+    }
+
+    public function get_user_need_password_change_by_id($id){
+        
+        $db = config::getConnexion();
+
+        $sql = "SELECT * FROM $this->tab_name WHERE id = :id";
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':id', $id);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result) {
+                return $result['need_password_change'];
+            } else {
+                return "error";
+            }
+
+        } catch (Exception $e) {
+            die('Error:' . $e->getMessage());
+        }
+        
+    }
+
+    public function updateUser_need_password_change($id, $new_value)
+    {
+        try {
+            $db = config::getConnexion();
+            $query = $db->prepare("UPDATE $this->tab_name SET need_password_change = :need_password_change WHERE id = :id");
+            $query->execute(['need_password_change' => $new_value, 'id' => $id]);
+            echo $query->rowCount() . " records UPDATED successfully <br>";
+            return true;
+        } catch (PDOException $e) {
+            $e->getMessage();
+            echo($e);
+            return false;
+        }
+    }
+
+    //GitHub
+    public function get_github_link($client_id="d037c92b841fb74c1517"){
+
+        // $client_id = "d037c92b841fb74c1517";
+        // $client_secret = "96b9503f0afad35d38f231ba6ec4b8edb3c86769";
+
+        //$link_to_fllow = "https://github.com/login/oauth/authorize?client_id=$client_id&scope=user:read,user:email";
+        $link_to_fllow = "https://github.com/login/oauth/authorize?client_id=$client_id&scope=user:read,user:email";
+        //return '../../../View/front_office/Sign In & Sign Up/github_signin.php?go_to_github=true';
+        return $link_to_fllow;
+    }
+
+    // profile management
+    public function get_user_profile_id_by_id($id){
+        
+        $db = config::getConnexion();
+
+        $sql = "SELECT * FROM profile WHERE profile_userid = :id";
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':id', $id);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result) {
+                return $result['profile_id'];
+            } else {
+                return "error";
+            }
+
+        } catch (Exception $e) {
+            die('Error:' . $e->getMessage());
+        }
+        
+    }
+
+    public function generateNavLink($nb, $link_var){
+        $link = "";
+        for ($i = 0; $i < $nb; $i++) {
+            $link.= "../";
+        }
+        return $link . $link_var;
+    }
+    
 
 }
 
@@ -783,7 +934,23 @@ class MailSender{
             "If you didn't request this reset, please ignore this message.\n\n" .
             "Thank you,\nThe $appName Team";
 
+
         return $passwordResetMessage;
+    }
+
+    public function generatePasswordResetMessage0($recipientName, $resetCode, $appName){
+
+        // Read HTML content from file
+        $htmlContent = file_get_contents(__DIR__ .'/email_template.html');
+
+        // Replace placeholders with actual values
+        $htmlContent = str_replace('{recipientName}', $recipientName, $htmlContent);
+        $htmlContent = str_replace('{appName}', $appName, $htmlContent);
+        $htmlContent = str_replace('{resetCode}', $resetCode, $htmlContent);
+
+        echo "dff : ". __DIR__ . " ff";
+
+        return $htmlContent;
     }
 
     public function generateAccountVerifyMessage($recipientName, $verificationCode, $appName){
@@ -828,6 +995,92 @@ class MailSender{
     }
 
 }
+
+class GoogleLogin{
+    private $client_id, $client_secret, $client_redirect_uri;
+
+    private $DEFAULT_CLIENT_ID = "894714799937-ern1o91j1vnalapk86b8fkerlqp41cik.apps.googleusercontent.com";
+    private $DEFAULT_CLIENT_SECRET = "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";
+
+    public function __construct($client = "", $secret = "", $redirect_url = ""){
+        // Set default values if the parameters are empty
+        $this->client_id = empty($client) ? $this->DEFAULT_CLIENT_ID : $client;
+        $this->client_secret = empty($secret) ? $this->DEFAULT_CLIENT_SECRET : $secret;
+
+        //$this->client_redirect_uri = 'http://' . $_SERVER['REQUEST_URI'] . $dir_place . 'callback.php';
+
+        // Determine the relative path from the document root to the directory containing the script
+        $dir = str_replace($_SERVER['DOCUMENT_ROOT'], '', dirname($_SERVER['SCRIPT_FILENAME']));
+        $base_url = 'http://' . $_SERVER['HTTP_HOST'] . $dir . '/View';
+
+        // Construct the URL to callback.php
+        $callback_url = $base_url . '/callback.php';
+
+        //$this->client_redirect_uri = $callback_url;
+        //$this->client_redirect_uri = empty($redirect_url) ? $callback_url : $redirect_url;
+        $this->client_redirect_uri = "http://localhost/hireup/v1/View/front_office/Sign%20In%20&%20Sign%20Up/authentication-login.php";
+
+
+        // create Client Request to access Google API
+        $this->client = new Google_Client();
+        $this->client->setClientId($this->get_client_id());
+        $this->client->setClientSecret($this->get_client_secret());
+        $this->client->setRedirectUri($this->get_client_redirect_uri());
+        $this->client->addScope("email");
+        $this->client->addScope("profile");
+
+        //echo "client url: ". $this->get_client_redirect_uri();
+
+    
+    }
+
+    public function get_client_id(){
+        return $this->client_id;
+    }
+
+    public function get_client_secret(){
+        return $this->client_secret;
+    }
+
+    public function get_client_redirect_uri(){
+        return $this->client_redirect_uri;
+    }
+
+    public function get_client(){
+        return $this->client;
+    }
+
+    public function get_auth_url(){
+        return $this->client->createAuthUrl();
+    }
+
+    public function get_client_infos(){
+        
+        $client = $this->get_client();
+
+        // authenticate code from Google OAuth Flow
+        if (isset($_GET['code'])) {
+            $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
+            $client->setAccessToken($token['access_token']);
+
+            // get profile info
+            $google_oauth = new Google_Service_Oauth2($client);
+            $google_account_info = $google_oauth->userinfo->get();
+            $email =  $google_account_info->email;
+            $name =  $google_account_info->name;
+
+            
+        }
+        else{
+            echo "no code";
+        }
+
+    }
+
+
+}
+
+
 
 
 ?>

@@ -16,9 +16,22 @@
     }
   </style>
 
+  <!-- signin buttons icons -->
+  <link rel="stylesheet" href="social_style.css" />
+  
+  <script src="https://kit.fontawesome.com/86ecaa3fdb.js" crossorigin="anonymous"></script>
+
 </head>
 
 <body>
+
+<?php 
+// $block_call_back = 'true';
+// $access_level = "else";
+// $special_case = 'password_changing';
+// include('./../../../View/callback.php')  
+?>
+
   <!--  Body Wrapper -->
   <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
     data-sidebar-position="fixed" data-header-position="fixed">
@@ -34,17 +47,28 @@
                 </a>
                 <p class="text-center">Your Social Campaigns</p>
                 <form method="post" action="change_password_action.php">
-                  <div class="mb-4">
+                  <div class="mb-4 password-container">
                     <label for="user_password" class="form-label">New Password</label>
                     <input type="password" class="form-control" id="user_password" name="user_password">
+                    <span class="toggle-password" onclick="togglePasswordVisibility()">
+                        <i class="fa-solid fa-eye-slash" id="eye-icon"></i>
+                    </span>
                     <div id="user_password_error" style="color: red;"></div>
                   </div>
-                  <div class="mb-4">
+                  <div class="mb-4 password-container">
                     <label for="user_con_password" class="form-label">Confirm Password</label>
                     <input type="password" class="form-control" id="user_con_password" name="user_con_password">
+                    <span class="toggle-password" onclick="togglePasswordVisibility2()">
+                        <i class="fa-solid fa-eye-slash" id="eye-icon2"></i>
+                    </span>
                     <div id="user_con_password_error" style="color: red;"></div>
                   </div>
                   <input type="submit" id="verif_btn" name="verif reset code" class="btn btn-primary w-100 py-8 fs-4 mb-4 rounded-2" value="Change Password" onclick="return change_password_verif();">
+                  
+                  <div class="d-flex align-items-center justify-content-center">
+                    <a class="text-primary fw-bold ms-2" href="./logout.php">Logout?</a>
+                  </div>
+                  
                 </form>
               </div>
             </div>
@@ -56,7 +80,7 @@
   <script src="../../../assets/libs/jquery/dist/jquery.min.js"></script>
   <script src="../../../assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
-  <script src="./SignIn_SignUp_js.js"></script>
+  <script src="./SignIn_SignUp.js"></script>
 
   <!-- php error check -->
   <?php

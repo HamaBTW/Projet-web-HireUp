@@ -54,10 +54,14 @@
   <?php
 
   include_once __DIR__ . './Controller/user_con.php';
+  require_once __DIR__ . '/Controller/profileController.php';
 
   $userC = new userCon("user");
+  $profileController = new ProfileC();
 
   $user_id = null;
+  
+  
   
   if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -65,20 +69,32 @@
 
   if(isset($_SESSION['user id'])) {
     $user_id = htmlspecialchars($_SESSION['user id']);
+    
+    $user_role = $userC->get_user_role_by_id($user_id);
+
+    $user_banned = $userC->get_user_banned_by_id($user_id);
+
+    // Get profile ID from the URL
+    $profile_id = $profileController->getProfileIdByUserId($user_id);
+
+  // Fetch profile data from the database
+    $profile = $profileController->getProfileById($profile_id);
+
+
   }
-
-  $user_role = $userC->get_user_role_by_id($user_id);
-
-  $user_banned = $userC->get_user_banned_by_id($user_id);
-
-  if ($user_banned == "true"){
-    header('Location:./View/front_office/Sign In & Sign Up/banned.php');
-  }
+  
 
   ?>
 
 
   <body>
+
+  <?php 
+    $block_call_back = 'true';
+    $access_level = "none";
+    include('./View/callback.php')  
+  ?>
+
     <div class="preloader">
       <div class="preloader_image"></div>
     </div>
@@ -165,24 +181,56 @@
               </div>
               <div class="col-lg-4">
                 <div class="button-container">                  
-                  <?php if ($user_id){
-                    if ($user_role == 'admin'){
+                  
+                <?php if ($user_id) { 
+                ?>
+                  <!-- Profile Dropdown -->
+                  <div class="dropdown ms-auto">
+                    <a href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" class="d-flex align-items-center justify-content-center mx-3" style="height: 100%;">
+                      <img src="data:image/jpeg;base64,<?= base64_encode($profile['profile_photo']) ?>" alt="Profile Photo" class="rounded-circle" width="50" height="50">
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                      <h5 class="dropdown-header">Account</h5>
+                      <li><a class="dropdown-item" href="./View/front_office/profiles_management/profile.php?profile_id=<?php echo $profile['profile_id']?>">Profile</a></li>
+
+                      <?php
+                          if ($user_role == 'admin'){
                       ?>
-                      <a class="primary-button" href="./View\front_office\Sign In & Sign Up\logout.php">Sign Out</a>
-                      <a class="primary-button" href="./View\back_office\users managment\users_management.php">Dashboard</a>
-                    <?php
-                      } else {
-                        ?>
-                        <a class="primary-button" href="./View\front_office\Sign In & Sign Up\logout.php">Sign Out</a>
-                        <?php
-                      }
-                  } else {
-                    ?>
+                            <li><a class="dropdown-item text-success" href="./View/back_office/main dashboard">Dashboard</a></li>
+                      <?php
+                          }                             
+                      ?>
+
+                      <li>
+                        <hr class="dropdown-divider">
+                      </li>
+                      <li><a class="dropdown-header" href="./View/back_office/profiles_management/subscription/subscriptionCards.php?profile_id=<?php echo $profile['profile_id']?>">Try Premium for $0</a></li>
+                      <li>
+                        <hr class="dropdown-divider">
+                      </li>
+                      <li><a class="dropdown-item" href="./View/front_office/profiles_management/profile-settings-privacy.php?profile_id=<?php echo $profile['profile_id'] ?>">Settings & Privacy</a></li>
+                      <li><a class="dropdown-item" href="#">Help</a></li>
+                      <li><a class="dropdown-item" href="#">Language</a></li>
+                      <li>
+                        <hr class="dropdown-divider">
+                      </li>
+                      <h5 class="dropdown-header">Manage</h5>
+                      <li><a class="dropdown-item" href="#">Posts & Activity</a></li>
+                      <li><a class="dropdown-item" href="#">Jobs</a></li>
+                      <li>
+                        <hr class="dropdown-divider">
+                      </li>
+                      <li><a class="dropdown-item" href="./View/front_office/Sign In & Sign Up/logout.php">Logout</a></li>
+                    </ul>
+                  </div>
+                  <?php
+                    }else {
+                  ?>
                     <a class="transparent-button" href="./View\front_office\Sign In & Sign Up\authentication-login.php">Sign In</a>
                     <a class="primary-button" href="./View\front_office\Sign In & Sign Up\authentication-register.php">Sign Up</a>
-                    <?php
-                  } 
-                    ?>
+                  <?php
+                    } 
+                  ?>
                 </div>                
               </div>
             </div>
@@ -205,7 +253,7 @@
                       </li>
 
                       <li>
-                        <a href="../back_office/profiles_management/profile_management.php">Profile</a>
+                        <a href="./View/front_office/profiles_management/profile.php">Profile</a>
                       </li>
                       <!-- eof pages -->
 
@@ -1336,6 +1384,8 @@
 
     <script src="./front office assets/js/compressed.js"></script>
     <script src="./front office assets/js/main.js"></script>
+
+    <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js'></script>
     <!-- <script src="js/switcher.js"></script> -->
 
     <!-- Google Map Script -->

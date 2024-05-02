@@ -1,9 +1,24 @@
+<?= 
+
+include_once __DIR__ . '/../../Controller/user_con.php';
+
+// Création d'une instance du contrôleur des événements
+$userC = new userCon("user");
+
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+?>
+
+
 <aside class="left-sidebar">
             <!-- Sidebar scroll-->
             <div>
                 <div class="brand-logo d-flex align-items-center justify-content-between">
                     <a title="#" href="./../../../index.php" class="text-nowrap logo-img">
-                        <img src="../../../assets/images/logos/HireUp_lightMode.png" alt="" width="175" height="73">
+                        <!-- <img src="./../../../assets/images/logos/HireUp_lightMode.png" alt="" width="175" height="73"> -->
+                        <img class="logo-img" alt="">
                     </a>
                     <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
                         <i class="ti ti-x fs-8"></i>
@@ -16,8 +31,8 @@
                             <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
                             <span class="hide-menu">Home</span>
                         </li>
-                        <li class="sidebar-item">
-                            <a class="sidebar-link" href="./index.html" aria-expanded="false">
+                        <li class="sidebar-item <?= ($active_page == 'main_dashboard') ? 'selected' : ''; ?>">
+                            <a class="sidebar-link" href="./<?= $userC->generateNavLink($nb_adds_for_link, 'View\back_office\main dashboard\index.php'); ?>" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-layout-dashboard"></i>
                                 </span>
@@ -29,15 +44,18 @@
                             <span class="hide-menu">Managements</span>
                         </li>
                         <li class="sidebar-item <?= ($active_page == 'user') ? 'selected' : ''; ?> ">
-                            <a class="sidebar-link" href="../../../View/back_office/users managment/users_management.php" aria-expanded="false">
+                            <!-- <a class="sidebar-link" href="./../../../View/back_office/users managment/users_management.php" aria-expanded="false"> -->
+                            <a class="sidebar-link" href="./<?= $userC->generateNavLink($nb_adds_for_link, 'View/back_office/users managment/users_management.php'); ?>" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-user"></i>
                                 </span>
                                 <span class="hide-menu">User</span>
                             </a>
                         </li>
-                        <li class="sidebar-item ">
-                            <a class="sidebar-link" href="./profile_management.html" aria-expanded="false">
+                        <li class="sidebar-item <?= ($active_page == 'profile') ? 'selected' : ''; ?>">
+                            <!-- <a class="sidebar-link" href="var(--link-profile-mg)" aria-expanded="false"> -->
+                                <!-- <a id="sidebar-link-profile" class="sidebar-link" aria-expanded="false"> -->
+                                <a class="sidebar-link" href="./<?= $userC->generateNavLink($nb_adds_for_link, 'View\back_office\profiles_management\profile_management.php'); ?>" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-user-circle"></i>
                                 </span>
@@ -121,3 +139,4 @@
             </div>
             <!-- End Sidebar scroll-->
 </aside>
+

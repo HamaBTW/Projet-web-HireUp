@@ -38,6 +38,14 @@ if (session_status() == PHP_SESSION_NONE) {
 ?>
 
   <body>
+
+    <?php 
+      $block_call_back = 'true';
+      $access_level = "else";
+      $special_case = 'user_banned';
+      include('./../../../View/callback.php')  
+    ?>
+
     <div class="preloader">
       <div class="preloader_image"></div>
     </div>

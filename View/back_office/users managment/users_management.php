@@ -19,7 +19,21 @@
             padding-top: 5%;
         }
     </style>
+
+    <!-- chart  -->
+    <script src="./../../../assets/libs/apexcharts/dist/apexcharts.min.js"></script>
+
+    <!-- signin buttons icons -->
+    <link rel="stylesheet" href="social_style.css" />
+
+    <script src="https://kit.fontawesome.com/86ecaa3fdb.js" crossorigin="anonymous"></script>
+
 </head>
+
+<!-- chart  -->
+
+
+<!-- /chart  -->
 
 <?php
 
@@ -33,37 +47,51 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
+// charts
+include '../../../Controller/stats_con.php';
+
+// Création d'une instance du contrôleur des événements
+$statsC = new StatsCon("stats");
+
+$stats = $statsC->listStats();
+$data = $stats->fetchAll(PDO::FETCH_ASSOC);
+
+//$data_json = json_encode(array_column($data, 'accounts_created'));
+$data_json = json_encode($data);
+
+//=======================================================================================
+
 if (isset($_GET['search_inp'])){
     $clickedBtn = $_GET['search_btn'];
     if ($clickedBtn == "search"){
-        echo "no sort";
         $keyword = trim($_GET['search_inp']);
         $search_by = trim($_GET['sl_search_type']);
         $role = trim($_GET['sl_role']);
         $verified = trim($_GET['sl_verified']);
         $banned = trim($_GET['sl_banned']);
+        $need_pass_chn = trim($_GET['sl_pass_chn']);
 
 
         // Récupération de la liste des événements
         if (str_replace(' ', '', $keyword) == '') {
-            if ( ($role == "none") && ($verified == "none") && ($banned == "none")){
+            if ( ($role == "none") && ($verified == "none") && ($banned == "none") && ($need_pass_chn == "none")){
                 $users = $userC->listUsers();
             }
             else{
-                $users = $userC->searchUser($search_by, $keyword, $role, $verified, $banned);
+                $users = $userC->searchUser($search_by, $keyword, $role, $verified, $banned, $need_pass_chn);
             }
         }
         else{
-            $users = $userC->searchUser($search_by, $keyword, $role, $verified, $banned);
+            $users = $userC->searchUser($search_by, $keyword, $role, $verified, $banned, $need_pass_chn);
         }
     }
     elseif ($clickedBtn == "sort"){
-        echo "sort";
         $keyword = trim($_GET['search_inp']);
         $search_by = trim($_GET['sl_search_type']);
         $role = trim($_GET['sl_role']);
         $verified = trim($_GET['sl_verified']);
         $banned = trim($_GET['sl_banned']);
+        $need_pass_chn = trim($_GET['sl_pass_chn']);
     
     
         // Récupération de la liste des événements
@@ -72,11 +100,11 @@ if (isset($_GET['search_inp'])){
                 $users = $userC->sortUser($search_by);
             }
             else{
-                $users = $userC->searchUserSorted($search_by, $keyword, $role, $verified, $banned);
+                $users = $userC->searchUserSorted($search_by, $keyword, $role, $verified, $banned, $need_pass_chn);
             }
         }
         else{
-            $users = $userC->searchUserSorted($search_by, $keyword, $role, $verified, $banned);
+            $users = $userC->searchUserSorted($search_by, $keyword, $role, $verified, $banned, $need_pass_chn);
         }
     }
     else{
@@ -90,13 +118,22 @@ else{
 ?>
 
 <body>
+
+<?php 
+$access_level = "admin";
+$block_call_back = 'false';
+include('./../../../View/callback.php')  
+?>
+
     <!--  Body Wrapper -->
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
         data-sidebar-position="fixed" data-header-position="fixed">
         <!-- Sidebar Start -->
         
         <?php 
+            $block_call_back = 'false';
             $active_page = "user";
+            $nb_adds_for_link = 3;
             include('../../../View/back_office/dashboard_side_bar.php') 
         ?>
 
@@ -114,6 +151,112 @@ else{
             </header>
             <!--  Header End -->
             <div class="container-fluid">
+
+            <!--  Stats Start -->
+            <div class="container-fluid">
+                    <!--  Row 1 -->
+                    <div class="row">
+                    <div class="col-lg-8 d-flex align-items-strech">
+                        <div class="card w-100">
+                        <div class="card-body">
+                            <div class="d-sm-flex d-block align-items-center justify-content-between mb-9">
+                            <div class="mb-3 mb-sm-0">
+                                <h5 class="card-title fw-semibold">Account Creation Trends</h5>
+                            </div>
+                            <!-- <div>
+                                <select title="#" class="form-select">
+                                <option value="1">March 2023</option>
+                                <option value="2">April 2023</option>
+                                <option value="3">May 2023</option>
+                                <option value="4">June 2023</option>
+                                </select>
+                            </div> -->
+                            </div>
+
+                
+                            <div id="chart" style="max-width: 650px; margin: 35px auto;">
+
+                            </div>
+
+                
+
+                        </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="row">
+                        <div class="col-lg-12">
+                            <!-- Yearly Breakup -->
+                            <div class="card overflow-hidden">
+                            <div class="card-body p-4">
+                                <h5 class="card-title mb-9 fw-semibold">Yearly Breakup</h5>
+                                <div class="row align-items-center">
+                                <div class="col-8">
+                                    <h4 class="fw-semibold mb-3">$36,358</h4>
+                                    <div class="d-flex align-items-center mb-3">
+                                    <span
+                                        class="me-1 rounded-circle bg-light-success round-20 d-flex align-items-center justify-content-center">
+                                        <i class="ti ti-arrow-up-left text-success"></i>
+                                    </span>
+                                    <p class="text-dark me-1 fs-3 mb-0">+9%</p>
+                                    <p class="fs-3 mb-0">last year</p>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                    <div class="me-4">
+                                        <span class="round-8 bg-primary rounded-circle me-2 d-inline-block"></span>
+                                        <span class="fs-2">2023</span>
+                                    </div>
+                                    <div>
+                                        <span class="round-8 bg-light-primary rounded-circle me-2 d-inline-block"></span>
+                                        <span class="fs-2">2023</span>
+                                    </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="d-flex justify-content-center">
+                                    <div id="breakup"></div>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <!-- Monthly Earnings -->
+                            <div class="card">
+                            <div class="card-body">
+                                <div class="row alig n-items-start">
+                                <div class="col-8">
+                                    <h5 class="card-title mb-9 fw-semibold"> Monthly Earnings </h5>
+                                    <h4 class="fw-semibold mb-3">$6,820</h4>
+                                    <div class="d-flex align-items-center pb-1">
+                                    <span
+                                        class="me-2 rounded-circle bg-light-danger round-20 d-flex align-items-center justify-content-center">
+                                        <i class="ti ti-arrow-down-right text-danger"></i>
+                                    </span>
+                                    <p class="text-dark me-1 fs-3 mb-0">+9%</p>
+                                    <p class="fs-3 mb-0">last year</p>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="d-flex justify-content-end">
+                                    <div
+                                        class="text-white bg-secondary rounded-circle p-6 d-flex align-items-center justify-content-center">
+                                        <i class="ti ti-currency-dollar fs-6"></i>
+                                    </div>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                            <div id="earning"></div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+            </div>
+            <!--  Stats End -->
+
                 <div class="container-fluid">
                     <div class="card">
                         <div class="card-body">
@@ -133,10 +276,15 @@ else{
                                         placeholder="Enter the email" required>
                                     <div id="user_email_error" style="color: red;"></div>
                                 </div>
-                                <div class="mb-3">
+                                <div class="mb-3 password-container">
                                     <label for="password" class="form-label">Password</label>
                                     <input type="password" class="form-control" id="password" name="password" placeholder="Enter the password"
                                         required>
+                                        
+                                        <span class="toggle-password" onclick="togglePasswordVisibility()">
+                                            <i class="fa-solid fa-eye-slash" id="eye-icon"></i>
+                                        </span>
+
                                     <div id="user_password_error" style="color: red;"></div>
                                 </div>
                                 <div class="mb-3">
@@ -181,6 +329,7 @@ else{
                                                         <option value="user_name">Username</option>
                                                         <option value="email">Email</option>
                                                         <option value="date">Date</option>
+                                                        <option value="account_type">Account Type</option>
                                                     </select>
                                                 </div>
                                                 <div class="search-input">
@@ -209,6 +358,15 @@ else{
                                                         <option value="none">None</option>
                                                         <option value="true">Banned</option>
                                                         <option value="false">Unbanned</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="search-need-pass-change">
+                                                    <label for="pass_chn">Need Password Change:</label>
+                                                    <select class="form-select" id="sl_pass_chn" name="sl_pass_chn">
+                                                        <option value="none">None</option>
+                                                        <option value="true">Needs</option>
+                                                        <option value="false">Doesn't Need</option>
                                                     </select>
                                                 </div>
 
@@ -251,6 +409,12 @@ else{
                                             </th>
                                             <th class="border-bottom-0">
                                                 <h6 class="fw-semibold mb-0">Authorized</h6>
+                                            </th>
+                                            <th class="border-bottom-0">
+                                                <h6 class="fw-semibold mb-0">Password set</h6>
+                                            </th>
+                                            <th class="border-bottom-0">
+                                                <h6 class="fw-semibold mb-0">Account Type</h6>
                                             </th>
                                             <th class="border-bottom-0">
                                                 <h6 class="fw-semibold mb-0">Actions</h6>
@@ -297,6 +461,16 @@ else{
                                                 <?php endif; ?>
                                             </td>
                                             <td class="border-bottom-0">
+                                                <?php if ($user['need_password_change'] == "false"): ?>
+                                                    <h6 class="fw-semibold mb-0"><i class="fa-solid fa-circle-check" style="color: green;"></i></h6>
+                                                <?php else: ?>
+                                                    <h6 class="fw-semibold mb-0"><i class="fa-solid fa-circle-xmark" style="color: red;"></i></h6>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="border-bottom-0">
+                                                <h6 class="fw-semibold mb-0"><?= $user['account_type']; ?></h6>
+                                            </td>
+                                            <td class="border-bottom-0">
                                                 <?php if ($user['role'] == "admin"): ?>
                                                     <button type="button" class="btn btn-primary btn-sm me-2" style="display: inline;" onclick="window.location.href = './set_role_to_user.php?id=<?= $user['id']; ?>';">Make User</button>
                                                 <?php else: ?>
@@ -336,7 +510,12 @@ else{
     <script src="../../../assets/js/sidebarmenu.js"></script>
     <script src="../../../assets/js/app.min.js"></script>
     <script src="../../../assets/libs/simplebar/dist/simplebar.js"></script>
-    <script src="../../../View/back_office/users managment/users_management_js.js"></script>
+    <script src="../../../View/back_office/users managment/users_management.js"></script>
+
+    <!-- chart  -->
+    <script src="user_charts.js" data-json="<?php echo htmlspecialchars($data_json); ?>"></script>
+
+    <script src="./../finition.js"></script>
 
     <!-- php error check -->
   <?php
@@ -429,6 +608,14 @@ else{
         $banned = htmlspecialchars($_GET['sl_banned']);
         // Inject the error message into the div element
         echo ("<script>document.getElementById('sl_banned').value = '$banned';</script>");
+      }
+
+      // need password change
+      if (isset($_GET['sl_pass_chn'])) {
+        // Retrieve and sanitize the error message
+        $need_pass_chn = htmlspecialchars($_GET['sl_pass_chn']);
+        // Inject the error message into the div element
+        echo ("<script>document.getElementById('sl_pass_chn').value = '$need_pass_chn';</script>");
       }
 
   ?>

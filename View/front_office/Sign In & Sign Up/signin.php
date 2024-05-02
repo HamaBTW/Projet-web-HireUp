@@ -25,7 +25,7 @@ if(isset($_SESSION['user id'])) {
             echo("Your verified ");
             echo("Welcome user id : " . $user_id);
 
-            #header('Location: ../../../View/front_office/Sign In & Sign Up/authentication-login.php');
+            header('Location: ../../../View/front_office/Sign In & Sign Up/authentication-login.php');
         }
         else{
             header('Location: ../../../View/front_office/Sign In & Sign Up/verify-account.php');
@@ -91,11 +91,24 @@ else
                     $user_verified = $userC->get_user_verified_by_id($res);
 
                     if ($user_verified == "true"){
-                        // echo("Your verified ");
-                        // echo("Welcome user id : " . $res);
 
-                        header('Location: ../../../View/front_office/Sign In & Sign Up/authentication-login.php');
-                    }
+                        $user_need_password_change = $userC->get_user_need_password_change_by_id($user_id);
+              
+                        if ($user_need_password_change == 'true'){
+              
+                          // take the user to the change password page
+                          header('Location: ../../../View/front_office/Sign In & Sign Up/change-password.php');
+              
+                        }
+                        else{
+                          echo("Your verified ");
+                          echo("Welcome user id : " . $user_id);
+              
+                          header('Location: ../../../index.php');//MARK: go back to index.php
+              
+                        }
+              
+                      }
                     else{
                         header('Location: ../../../View/front_office/Sign In & Sign Up/verify-account.php');
                     }

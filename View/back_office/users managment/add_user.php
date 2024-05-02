@@ -3,8 +3,12 @@
 include '../../../Controller/user_con.php';
 include '../../../Model/user.php';
 
+include '../../../Controller/stats_con.php';
+
 // Création d'une instance du contrôleur des événements
 $userC = new userCon("user");
+
+$statsC = new StatsCon("stats");
 
 // Création d'une instance de la classe Event
 $user = null;
@@ -64,6 +68,12 @@ if (
         }
 
         $userC->addUser($user);
+
+        // add stats
+        $currentDate = date("Y-m-d");
+
+        $statsC->addUserAccountCreatedInStat($currentDate);
+
         $success_message = "User added successfully!";
         header('Location: ../../../View/back_office/users managment/users_management.php?success_global=' . urlencode($success_message) . '&user_name_email=' . urlencode($user->get_user_name()));
         exit(); // Make sure to stop further execution after redirection

@@ -23,16 +23,33 @@ if (isset($_POST['user_con_password'])) {
         
         if ($res == true){
             $success_message = "Password changed successfully!";
+            if ($userC->get_user_need_password_change_by_id($user_id) == 'true'){
+                $res = $userC->updateUser_need_password_change($user_id, 'false');
+                
+                if ($res == true){
+                    header('Location: ../../../View/front_office/Sign In & Sign Up/authentication-login.php?success_global=' . urlencode($success_message) . '&user_name_email=' . urlencode($userC->get_user_username_by_id($user_id)));
+                    echo "dddd";
+                    exit();
+                }
+            }
             header('Location: ../../../View/front_office/Sign In & Sign Up/authentication-login.php?success_global=' . urlencode($success_message) . '&user_name_email=' . urlencode($userC->get_user_username_by_id($user_id)));
+            echo "cccc";
             exit(); // Make sure to stop further execution after redirection
           }
+          else {
+            echo "aaa";
+        }
     }
     
     // returning an error
     $error_message = "Failed to change password. Please try again later.";
-    header('Location: ../../../View/front_office/Sign In & Sign Up/authentication-login.php?error_global=' . urlencode($error_message));
+    #header('Location: ../../../View/front_office/Sign In & Sign Up/authentication-login.php?error_global=' . urlencode($error_message));
+    echo "bbbbb";
     exit(); // Make sure to stop further execution after redirection
     
+}
+else{
+    echo "aaa";
 }
 
 
