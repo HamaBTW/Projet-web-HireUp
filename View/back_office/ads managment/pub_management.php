@@ -74,6 +74,7 @@ if (isset($_GET['search_inp'])){
 }
 else{
     $pubs = $pubb->listpub();
+    $id_dmd_options = $pubb->generateDmdOptions();
 }
 
 ?>
@@ -120,28 +121,25 @@ else{
                                     <div id="contenu_error" style="color: red;"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="objectif" class="form-label">objectif</label>
-                                    <input type="text" class="form-control" id="objectif" name="objectif" placeholder="Enter the objectif"
+                                    <label for="dat" class="form-label">date</label>
+                                    <input type="date" class="form-control" id="dat" name="dat" placeholder="Enter the date"
                                         required>
-                                    <div id="objectif_error" style="color: red;"></div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="dure" class="form-label">dure</label>
-                                    <input type="text" class="form-control" id="dure" name="dure" placeholder="Enter the dure"
-                                        required>
-                                    <div id="dure_error" style="color: red;"></div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="budget" class="form-label">budget</label>
-                                    <input type="text" class="form-control" id="budget" name="budget" placeholder="Enter the budget"
-                                        required>
-                                    <div id="budget_error" style="color: red;"></div>
+                                    <div id="dat_error" style="color: red;"></div>
                                 </div>
                                 
+                               
+                                <div class="mb-3">
+                                    <label for="id_dmd" class="form-label">ID Demande</label>
+                                    <select class="form-control" id="id_dmd" name="id_dmd" required>
+                                        <option value="" selected disabled>choisir le type</option>
+                                        <?php echo $id_dmd_options; ?>
+                                    </select>
+                                    <div id="id_dmd_error" style="color: red;"></div>
+                                </div>
 
 
                                 <!-- Submit Button -->
-                                <button type="submit" class="btn btn-primary" onclick="return verif_pub_manaet_inputs()">Add pub</button>
+                                <button type="submit" class="btn btn-primary" onclick="return verif()">Add pub</button>
 
                                 <div class="mb-3" id="error_global" style="color: red; text-align: center;"></div>
                                 <div class="mb-3" id="success_global" style="color: green; text-align: center;"></div>
@@ -201,16 +199,13 @@ else{
                                                 <h6 class="fw-semibold mb-0">contenu</h6>
                                             </th>
                                             <th class="border-bottom-0">
-                                                <h6 class="fw-semibold mb-0">objectif</h6>
+                                                <h6 class="fw-semibold mb-0">date</h6>
                                             </th>
                                             <th class="border-bottom-0">
-                                                <h6 class="fw-semibold mb-0">dure</h6>
+                                                <h6 class="fw-semibold mb-0">ID Demande</h6>
                                             </th>
                                             <th class="border-bottom-0">
-                                                <h6 class="fw-semibold mb-0">budget</h6>
-                                            </th>
-                                            <th class="border-bottom-0">
-                                                <h6 class="fw-semibold mb-0">Actions</h6>
+                                                <h6 class="fw-semibold mb-0">actions</h6>
                                             </th>
                                         </tr>
                                     </thead>
@@ -222,7 +217,7 @@ else{
                                         ?>
                                         <tr>
                                             <td class="border-bottom-0">
-                                                <h6 class="fw-semibold mb-0"><?= $pub['id']; ?></h6>
+                                                <h6 class="fw-semibold mb-0"><?= $pub['idpub']; ?></h6>
                                             </td>
                                             <td class="border-bottom-0">
                                                 <h6 class="fw-semibold mb-0"><?= $pub['titre']; ?></h6>
@@ -231,18 +226,15 @@ else{
                                                 <h6 class="fw-semibold mb-0"><?= $pub['contenu']; ?></h6>
                                             </td>
                                             <td class="border-bottom-0">
-                                                <h6 class="fw-semibold mb-0"><?= $pub['objectif']; ?></h6>
+                                                <h6 class="fw-semibold mb-0"><?= $pub['dat']; ?></h6>
                                             </td>
                                             <td class="border-bottom-0">
-                                                <h6 class="fw-semibold mb-0"><?= $pub['dure']; ?></h6>
-                                            </td>
-                                            <td class="border-bottom-0">
-                                                <h6 class="fw-semibold mb-0"><?= $pub['budget']; ?></h6>
+                                                <h6 class="fw-semibold mb-0"><?= $pub['id_demande']; ?></h6>
                                             </td>
                                             <td class="border-bottom-0">
                                                 
-                                                <button type="button" class="btn btn-danger btn-sm me-2" onclick="window.location.href = './delete_pub.php?id=<?= $pub['id']; ?>';">Delete</button>
-                                                <button type="button" class="btn btn-danger btn-sm me-2" onclick="window.location.href = './update_pub.php?id=<?= $pub['id']; ?>';">update</button>
+                                                <button type="button" class="btn btn-primary btn-sm me-2" onclick="window.location.href = './update_pub.php?id=<?= $pub['idpub']; ?>';">update</button>
+                                                <button type="button" class="btn btn-danger btn-sm me-2" onclick="window.location.href = './delete_pub.php?id=<?= $pub['idpub']; ?>';">Delete</button>
                                                 
 
                                             </td>
@@ -271,7 +263,7 @@ else{
     <script src="../../../assets/js/sidebarmenu.js"></script>
     <script src="../../../assets/js/app.min.js"></script>
     <script src="../../../assets/libs/simplebar/dist/simplebar.js"></script>
-    <script src="../../../View/back_office/ads managment/pub_management.js"></script>
+    <script src="../../../View/back_office/ads managment/pubjs.js"></script>
 
     <!-- php error check -->
   <?php

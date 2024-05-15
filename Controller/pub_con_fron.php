@@ -86,6 +86,69 @@ class pubCon{
         }
     }
 
+    public function listAcceptedPubs()
+    {
+        $sql = "SELECT publicite.* 
+                FROM publicite 
+                INNER JOIN demande ON publicite.id_demande = demande.iddemande 
+                WHERE demande.status = 'accepted'";
+
+        $db = config::getConnexion();
+        try {
+            $liste = $db->query($sql);
+            return $liste;
+        } catch (Exception $e) {
+            die('Error:' . $e->getMessage());
+        }
+    }
+
+    public function get_pup_img_by_dmd_id($id){
+        
+        $db = config::getConnexion();
+
+        $sql = "SELECT * FROM demande WHERE iddemande = :id";
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':id', $id);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result) {
+                return $result['image'];
+            } else {
+                return "error";
+            }
+
+        } catch (Exception $e) {
+            die('Error:' . $e->getMessage());
+        }
+        
+    }
+
+    public function generate_pub(){
+
+        $array = $this->listAcceptedPubs();
+
+        $pubs = $array->fetchAll(PDO::FETCH_ASSOC);
+
+        //var_dump($pubs);
+
+        $length = count($pubs);
+
+        $randomNumber = rand(0, $length - 1);
+
+        $current_pub = $pubs[$randomNumber];
+
+        $its_id_dmd = $current_pub['id_demande'];
+
+        //echo ''. $its_id_dmd .'';
+
+        $current_dmd_img = $this->get_pup_img_by_dmd_id($its_id_dmd);
+
+
+        echo '<img src="data:image/jpeg;base64,' . base64_encode($current_dmd_img) . '" alt="" class="img-fluid">';
+    }
+
 }
 
 

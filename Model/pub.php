@@ -2,24 +2,23 @@
 
 class Pub{
 
-    private $id, $titre, $contenu, $objectif, $dure, $budget;
+    private $idpub, $titre, $contenu, $dat, $id_dmd;
 
 
-    public function __construct($id, $titre, $contenu, $objectif, $dure, $budget){
-        $this->id = $id;
+    public function __construct($idpub, $titre, $contenu, $dat, $id_dmd){
+        $this->idpub = $idpub;
         $this->titre = $titre;
         $this->contenu = $contenu;
-        $this->objectif = $objectif;
-        $this->dure = $dure;
-        $this->budget = $budget;
+        $this->dat = $dat;
+        $this->id_dmd = $id_dmd;
     }
 
-    public function set_id($val){
-        $this->id = $val;
+    public function set_idpub($val){
+        $this->idpub = $val;
     }
 
-    public function get_id(){
-        return $this->id;
+    public function get_idpub(){
+        return $this->idpub;
     }
 
     public function set_titre($val){
@@ -39,30 +38,22 @@ class Pub{
     }
 
 
-    public function set_objectif($val){
-        $this->objectif = $val;
+    public function set_dat($val){
+        $this->dat = $val;
     }
 
-    public function get_objectif(){
-        return $this->objectif;
+    public function get_dat(){
+        return $this->dat;
     }
 
-
-    public function set_dure($val){
-        $this->dure = $val;
+    public function set_id_dmd($val){
+        $this->id_dmd = $val;
     }
 
-    public function get_dure(){
-        return $this->dure;
+    public function get_id_dmd(){
+        return $this->id_dmd;
     }
 
-    public function set_budget($val){
-        $this->budget = $val;
-    }
-
-    public function get_budget(){
-        return $this->budget;
-    }
 
    
     

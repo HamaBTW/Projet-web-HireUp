@@ -26,11 +26,11 @@ class pubCon{
         return (string) $random_id; // Ensure the return value is a string
     }
 
-    public function pubExists($id, $db) {
-        $sql = "SELECT COUNT(*) as count FROM publicite WHERE id = :id";
+    public function pubExists($idpub, $db) {
+        $sql = "SELECT COUNT(*) as count FROM publicite WHERE idpub = :idpub";
         try {
             $stmt = $db->prepare($sql);
-            $stmt->bindParam(':id', $id);
+            $stmt->bindParam(':idpub', $idpub);
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return $result['count'] > 0;
@@ -65,18 +65,17 @@ class pubCon{
 
     public function addpub($pub)
     {
-        $sql = "INSERT INTO publicite(id, titre, contenu, objectif ,dure ,budget) VALUES (:id, :titre, :contenu, :objectif, :dure, :budget)";
+        $sql = "INSERT INTO publicite(idpub, titre, contenu, dat, id_demande) VALUES (:idpub, :titre, :contenu, :dat, :id_dmd)";
         $db = config::getConnexion();
         try {
             $query = $db->prepare($sql);
             $query->execute(
                [
-                'id' => $pub->get_id(), 
+                'idpub' => $pub->get_idpub(), 
                 'titre' => $pub->get_titre(), 
                 'contenu' => $pub->get_contenu(), 
-                'objectif' => $pub->get_objectif(), 
-                'dure' => $pub->get_dure(),
-                'budget' => $pub->get_budget()
+                'dat' => $pub->get_dat(),
+                'id_dmd' => $pub->get_id_dmd()
                 ]
             );
         } catch (Exception $e) {
@@ -84,18 +83,19 @@ class pubCon{
         }
     }
 
-    function updatepub($pub, $id)
+    function updatepub($pub, $idpub)
     {
         try {
             $db = config::getConnexion();
-            $query = $db->prepare("UPDATE publicite SET titre = :titre, contenu = :contenu, objectif = :objectif, dure = :dure, budget = :budget WHERE id = :id");
+            $query = $db->prepare("UPDATE publicite SET titre = :titre, contenu = :contenu, dat = :dat, id_demande = :id_dmd WHERE idpub = :idpub");
             $query->execute([
-                'id' => $id, 
+                'idpub' => $idpub, 
                 'titre' => $pub->get_titre(),
                 'contenu' => $pub->get_contenu(),
-                'objectif' => $pub->get_objectif(),
-                'dure' => $pub->get_dure(),
-                'budget' => $pub->get_budget()
+                'dat' => $pub->get_dat(),
+                'id_dmd' => $pub->get_id_dmd()
+        
+                
             ]);
             echo $query->rowCount() . " records UPDATED successfully <br>";
         } catch (PDOException $e) {
@@ -105,12 +105,12 @@ class pubCon{
     }
     
 
-    public function deletepub($id)
+    public function deletepub($idpub)
     {
-        $sql = "DELETE FROM publicite WHERE id = :id";
+        $sql = "DELETE FROM publicite WHERE idpub = :idpub";
         $db = config::getConnexion();
         $req = $db->prepare($sql);
-        $req->bindValue(':id', $id);
+        $req->bindValue(':idpub', $idpub);
 
         try {
             $req->execute();
@@ -189,9 +189,9 @@ class pubCon{
     }
 
 
-    public function getpub($id)
+    public function getpub($idpub)
     {
-        $sql = "SELECT * FROM publicite WHERE id = $id";
+        $sql = "SELECT * FROM publicite WHERE idpub = $idpub";
         $db = config::getConnexion();
 
         try {
@@ -236,6 +236,56 @@ class pubCon{
             die('Error:' . $e->getMessage());
         }        
 
+    }
+
+
+    public function generateDmdOptions()
+    {
+        // Fetching the blog IDs from the database
+        $sql = "SELECT iddemande, titre FROM demande";
+
+        $db = config::getConnexion();
+
+        try {
+            $stmt = $db->query($sql);
+
+            // Generating the <option> tags
+            $options = '';
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $options .= '<option value="' . $row['iddemande'] . '">' . $row['titre'] . '</option>';
+            }
+
+            return $options;
+        } catch (PDOException $e) {
+            die('Error:' . $e->getMessage());
+        }
+    }
+
+    public function generateDmdOptionsSelected($id)
+    {
+        // Fetching the blog IDs from the database
+        $sql = "SELECT iddemande, titre FROM demande";
+
+        $db = config::getConnexion();
+
+        try {
+            $stmt = $db->query($sql);
+
+            // Generating the <option> tags
+            $options = '';
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                if ($row['iddemande'] == $id){
+                    $options .= '<option selected value="' . $row['iddemande'] . '">' . $row['titre'] . '</option>';
+                }
+                else{
+                    $options .= '<option value="' . $row['iddemande'] . '">' . $row['titre'] . '</option>';
+                }
+            }
+
+            return $options;
+        } catch (PDOException $e) {
+            die('Error:' . $e->getMessage());
+        }
     }
 
 }

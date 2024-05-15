@@ -10,29 +10,28 @@ $pubb = new pubCon("pub");
 // Création d'une instance de la classe Event
 $pub = null;
 
+
+
+
 if (
     isset($_POST["titre"]) &&
     isset($_POST["contenu"]) &&
-    isset($_POST["objectif"]) &&
-    isset($_POST["dure"])&&
-    isset($_POST["budget"])
+    isset($_POST["dat"]) &&
+    isset($_POST["id_dmd"])
 ) {
-    echo("1");
     if (
         !empty($_POST['titre']) &&
         !empty($_POST["contenu"]) &&
-        !empty($_POST["objectif"]) &&
-        !empty($_POST["dure"])&&
-        !empty($_POST["budget"])
+        !empty($_POST["dat"]) &&
+        !empty($_POST["id_dmd"])
     ) {
-        echo("2");
         $pub = new Pub(
             $pubb->generatepubId(5),
             $_POST['titre'],
             $_POST['contenu'],
-            $_POST['objectif'],
-            $_POST['dure'],
-            $_POST['budget']
+            $_POST['dat'],
+            $_POST['id_dmd']
+            
         );
 
         # do some checks first

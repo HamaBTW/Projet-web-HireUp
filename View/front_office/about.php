@@ -22,11 +22,42 @@
     <link href="images/HireUp_icon.ico" rel="icon">
     
      <script src="about.js" ></script> 
-     <script src="../../View/front_office/pub_management.js"></script>
+     <script src="../../View/front_office/dmd_management.js"></script>
+
+     <script>
+        function startSpeechRecognition(inputId) {
+            if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.interimResults = true;
+
+                recognition.addEventListener('result', e => {
+                    const transcript = Array.from(e.results)
+                        .map(result => result[0])
+                        .map(result => result.transcript)
+                        .join('');
+
+                    document.getElementById(inputId).value = transcript;
+                });
+
+                recognition.start();
+            } else {
+                alert("Speech recognition not supported in this browser.");
+            }
+        }
+    </script>
 
     
 
   </head>
+
+  <?php 
+  
+  require_once __DIR__ . "/../../Controller/pub_con_fron.php";
+
+  $pubC = new pubCon("dmd");
+
+  ?>
   
 
   <body>
@@ -679,7 +710,13 @@
         <section class="ls collapse-section about">
           <div class="row">
             <div class="col-lg-6">
-              <div class="image_cover image_cover_left half-image"></div>
+              <!-- <div class="image_cover image_cover_left half-image"></div> -->
+              <div class="image_cover image_cover_left">
+                <!-- <img src="./images\blog-1.jpg" alt=""> -->
+                <?php 
+                  $pubC->generate_pub(); // affichage des pubs
+                ?>
+              </div>
             </div>
             <div class="col-lg-6 collapse-table">
               <div class="contact-header collapse-header heading pt-30">
@@ -804,46 +841,58 @@
                   <div class="card-body">
                       <h5 class="card-title fw-semibold mb-4">demand d'ajout</h5>
                       <!-- Form for adding new job -->
-                      <form action="./add_pub_front.php" method="post">
+                      <form action="./add_dmd_front.php" method="post" enctype="multipart/form-data">
                           <!-- job Information -->
                           <div class="mb-3">
                               <label for="titre" class="form-label">titre</label>
                               <input type="text" class="form-control" id="titre" name="titre"
                                   placeholder="Enter the titre" required>
+                                  <i class="fa fa-microphone voice-icon" onclick="startSpeechRecognition('titre')"></i>
                               <div id="titre_error" style="color: red;"></div>
                           </div>
                           <div class="mb-3">
                               <label for="contenu" class="form-label">contenu</label>
                               <input type="text" class="form-control" id="contenu" name="contenu"
                                   placeholder="Enter the contenu" required>
+                                  <i class="fa fa-microphone voice-icon" onclick="startSpeechRecognition('contenu')"></i>
                               <div id="contenu_error" style="color: red;"></div>
                           </div>
                           <div class="mb-3">
                               <label for="objectif" class="form-label">objectif</label>
                               <input type="text" class="form-control" id="objectif" name="objectif" placeholder="Enter the objectif"
                                   required>
+                                  <i class="fa fa-microphone voice-icon" onclick="startSpeechRecognition('objectif')"></i>
                               <div id="objectif_error" style="color: red;"></div>
                           </div>
                           <div class="mb-3">
                               <label for="dure" class="form-label">dure</label>
                               <input type="text" class="form-control" id="dure" name="dure" placeholder="Enter the dure"
-                                  required>
+                                  required><i class="fa fa-microphone voice-icon" onclick="startSpeechRecognition('dure')"></i>
+                                  
                               <div id="dure_error" style="color: red;"></div>
                           </div>
                           <div class="mb-3">
                               <label for="budget" class="form-label">budget</label>
                               <input type="text" class="form-control" id="budget" name="budget" placeholder="Enter the budget"
                                   required>
+                                  <i class="fa fa-microphone voice-icon" onclick="startSpeechRecognition('budget')"></i>
                               <div id="budget_error" style="color: red;"></div>
                           </div>
+                          <div class="mb-3">
+                                    <label for="image_publication"><b>Image</b></label>
+                                    <input type="file" class="form-control" id="image_publication" name="image_publication" accept="image/*"  require/>
+                                    <div id="image_publicationError" style="color: red;"></div>
+                                </div>
                           
 
 
                           <!-- Submit Button -->
                           <button type="submit" class="btn btn-primary" onclick="return verif_inputs()">submit</button>
+                      
 
                           <div class="mb-3" id="error_global" style="color: red; text-align: center;"></div>
-                          <div class="mb-3" id="success_global" style="color: green; text-align: center;"></div>    
+                          <div class="mb-3" id="success_global" style="color: green; text-align: center;"></div>   
+          </form> 
 
 
                           
