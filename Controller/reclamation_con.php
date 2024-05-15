@@ -2,6 +2,11 @@
 
 require '../../../config.php';
 
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/includes/Foo.php';
+
+
+
 
 
 class recCon{
@@ -127,6 +132,30 @@ class recCon{
         }
     }
 
+    public function searchRec($by, $keyword){
+
+        if ($by == "everything"){
+            $sql = "SELECT * FROM $this->tab_name WHERE sujet LIKE '%$keyword%' OR description LIKE '%$keyword%' OR statut LIKE '%$keyword%' OR id LIKE '%$keyword%' OR id_user LIKE '%$keyword%'";
+        }
+        else{
+            $sql = "SELECT * FROM $this->tab_name WHERE $by LIKE '%$keyword%'";
+        }
+
+        $db = config::getConnexion();
+        try {
+            $db = config::getConnexion();
+            $query = $db->prepare($sql);
+            $query->execute();
+        
+            $liste = $query->fetchAll(PDO::FETCH_ASSOC);
+            //echo "SQL Query: " . $query->queryString;
+            return $liste;
+        } catch (Exception $e) {
+            die('Error:' . $e->getMessage());
+        }        
+
+    }
+
     public function sortRec($by){
 
         
@@ -154,63 +183,101 @@ class recCon{
 
     }
 
-    public function searchRec($by, $keyword){
+    public function generatePDF($id) {
 
-        if ($by == "everything"){
-            $sql = "SELECT * FROM $this->tab_name WHERE sujet LIKE '%$keyword%' OR description LIKE '%$keyword%' OR date_creation LIKE '%$keyword%' OR statut LIKE '%$keyword%' OR id_user LIKE '%$keyword%' OR id LIKE '%$keyword%'";
-        }
-        else{
-            $sql = "SELECT * FROM $this->tab_name WHERE $by LIKE '%$keyword%'";
-        }
+        $data = $this->getRec($id);
 
-        $db = config::getConnexion();
-        try {
-            $db = config::getConnexion();
-            $query = $db->prepare($sql);
-            $query->execute();
+        $mpdf = new \Mpdf\Mpdf();
+        /**
+         * Password protect document
+         */
+        $mpdf->SetProtection([], 'UserPassword', 'Password');
+
+        /**
+         * Set file properties
+         */
+        $mpdf->SetTitle('HireUp Reclamation');
+        $mpdf->SetAuthor('HireUp');
+
+        /**
+         * Setup header and footer content / properties, split content left, right, and center with a pipe |
+         */
+        $mpdf->defaultheaderline = 0;
+        $mpdf->setHeader('|HireUp Reclamation|');
+        $mpdf->defaultfooterline = 0;
+        $mpdf->setFooter('|HireUp Reclamation|{DATE F j, Y}|{PAGENO}');
+
+        /**
+         * Add external stylesheet
+         */
+        $stylesheet = file_get_contents('style.css');
+        $mpdf->WriteHTML($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
+
+        /**
+         * Add a watermark
+         */
+        $mpdf->SetWatermarkText('HireUp');
+        $mpdf->showWatermarkText = true;
+        $mpdf->watermarkTextAlpha = .1;
+
+        /**
+         * Add content using direct or string method
+         */
+
+        // Load HTML content
+        $html = '<html><body>';
+        $html .= '<h1>Reclamation</h1>';
+        $html .= '<table border="1">';
+        $html .= '<tr><th>ID</th><th>Sujet</th><th>Description</th><th>Date Creation</th><th>Statut</th><th>ID User</th></tr>';
         
-            $liste = $query->fetchAll(PDO::FETCH_ASSOC);
-            //echo "SQL Query: " . $query->queryString;
-            return $liste;
-        } catch (Exception $e) {
-            die('Error:' . $e->getMessage());
-        }        
+            $html .= '<tr>';
+            $html .= '<td>' . $data['id'] . '</td>';
+            $html .= '<td>' . $data['sujet'] . '</td>';
+            $html .= '<td>' . $data['description'] . '</td>';
+            $html .= '<td>' . $data['date_creation'] . '</td>';
+            $html .= '<td>' . $data['statut'] . '</td>';
+            $html .= '<td>' . $data['id_user'] . '</td>';
+            $html .= '</tr>';
+        
+        $html .= '</table>';
+        $html .= '</body></html>';
 
+
+        $mpdf->WriteHTML($html);
+
+
+
+        $mpdf->AddPage();
+
+        /**
+         * Add content from a class
+         */
+        $mpdf->WriteHTML((new Foo())->bar());
+
+        /**
+         * Output the file (blank for screen, D for download, F for file save)
+         */
+        $mpdf->Output();
     }
+  
 
-    public function searchRecSorted($by, $keyword){
-
-        if ($by == "everything"){
-            $sql = "SELECT * FROM $this->tab_name WHERE sujet LIKE '%$keyword%' OR description LIKE '%$keyword%' OR date_creation LIKE '%$keyword%' OR statut LIKE '%$keyword%' OR id_user LIKE '%$keyword%' OR id LIKE '%$keyword%'";
-        }
-        else{
-            $sql = "SELECT * FROM $this->tab_name WHERE $by LIKE '%$keyword%'";
-        }
-
-        // add order by//recherche avec tri
-        if ($by == "everything"){
-            $sql .= " ORDER BY id";
-        }
-        else{
-            $sql .= " ORDER BY $by";
-        }
-
+    public function listRecsByIdUser($id) {
+        $sql = "SELECT * FROM reclamations where id_user = :id";
         $db = config::getConnexion();
         try {
-            $db = config::getConnexion();
             $query = $db->prepare($sql);
-            $query->execute();
-        
-            $liste = $query->fetchAll(PDO::FETCH_ASSOC);
-            //echo "SQL Query: " . $query->queryString;
-            return $liste;
-        } catch (Exception $e) {
-            die('Error:' . $e->getMessage());
-        }        
-
+            $query->execute([               
+                'id' => $id
+            ]);
+            return $query->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo 'Error: ' . $e->getMessage();
+        }
     }
 
 }
+
+
 
 
 

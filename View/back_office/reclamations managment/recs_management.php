@@ -39,55 +39,42 @@ if (isset($_GET['search_inp'])){
         echo "no sort";
         $keyword = trim($_GET['search_inp']);
         $search_by = trim($_GET['sl_search_type']);
-        $role = trim($_GET['sl_role']);
-        $verified = trim($_GET['sl_verified']);
-        $banned = trim($_GET['sl_banned']);
 
 
         // Récupération de la liste des événements
         if (str_replace(' ', '', $keyword) == '') {
-            if ( ($role == "none") && ($verified == "none") && ($banned == "none")){
-                $users = $userC->listUsers();
-            }
-            else{
-                $users = $userC->searchUser($search_by, $keyword, $role, $verified, $banned);
-            }
+            
+            $recs = $recC->listRect();
+        echo "not searching";
+
+            
         }
         else{
-            $users = $userC->searchUser($search_by, $keyword, $role, $verified, $banned);
+            $recsearch = $recC->searchRec($search_by, $keyword);
+        echo "im searching";
+
         }
-    }
-    elseif ($clickedBtn == "sort"){
-        echo "sort";
-        $keyword = trim($_GET['search_inp']);
-        $search_by = trim($_GET['sl_search_type']);
-        $role = trim($_GET['sl_role']);
-        $verified = trim($_GET['sl_verified']);
-        $banned = trim($_GET['sl_banned']);
-    
-    
-        // Récupération de la liste des événements
-        if (str_replace(' ', '', $keyword) == '') {
-            if ( ($role == "none") && ($verified == "none") && ($banned == "none")){
-                $users = $userC->sortUser($search_by);
-            }
-            else{
-                $users = $userC->searchUserSorted($search_by, $keyword, $role, $verified, $banned);
-            }
-        }
-        else{
-            $users = $userC->searchUserSorted($search_by, $keyword, $role, $verified, $banned);
-        }
-    }
-    else{
-        $users = $userC->listUsers();
     }
 }
-else{
+
+
+// Supposons que vous avez une condition ou une variable pour déterminer si le tri est activé ou non
+if (isset($clickedBtn) && $clickedBtn == "sort"){
+    echo "sort";
+    $keyword = trim($_GET['search_inp']);
+    $search_by = trim($_GET['sl_search_type']);
+    
+
+    // Ajoutez votre logique de tri ici
+    // ...
+} else {
+    // Par défaut, lister toutes les réclamations
     $recs = $recC->listRect();
 }
 
+
 ?>
+
 
 <body>
     <!--  Body Wrapper -->
@@ -110,62 +97,7 @@ else{
                 </nav>
             </header>
             <!--  Header End -->
-            <div class="container-fluid">
-                <div class="container-fluid">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title fw-semibold mb-4">Reclamations Management</h5>
-                            <!-- Form for adding new job -->
-                            <form action="./add_rec.php" method="post">
-                                <!-- job Information -->
-                                <div class="mb-3">
-                                    <label for="sujet" class="form-label">Subject</label>
-                                    <input type="text" class="form-control" id="sujet" name="sujet"
-                                        placeholder="Enter the subject" required>
-                                    <div id="sujet_error" style="color: red;"></div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Description</label>
-                                    <input type="text" class="form-control" id="description" name="description"
-                                        placeholder="Enter the description" required>
-                                    <div id="description_error" style="color: red;"></div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="date_creation" class="form-label">Creation DSate</label>
-                                    <input type="date" class="form-control" id="date_creation" name="date_creation" placeholder="Enter the creation date"
-                                        required>
-                                    <div id="date_creation_error" style="color: red;"></div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="status" class="form-label">Status</label>
-                                    <select class="form-select" id="status" name="status" required>
-                                        <option value="" selected disabled>Select a status</option>
-                                        <option value="pending request">Pending Request</option>
-                                        <option value="in progress">In Progress</option>
-                                        <option value="solved">Solved</option>
-                                        <!-- Add more options as needed -->
-                                    </select>
-                                    <div id="status_error" style="color: red;"></div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="id_user" class="form-label">User ID</label>
-                                    <input type="text" class="form-control" id="id_user" name="id_user" placeholder="Enter the user id"
-                                        required>
-                                    <div id="id_user_error" style="color: red;"></div>
-                                </div>
-
-                                <!-- Submit Button -->
-                                <button type="submit" class="btn btn-primary" onclick="return verif_reclamation_managemet_inputs_front()">Add Reclamation</button>
-
-                                <div class="mb-3" id="error_global" style="color: red; text-align: center;"></div>
-                                <div class="mb-3" id="success_global" style="color: green; text-align: center;"></div>
-
-                            </form>
-                        </div>
-                    </div>
-                </div>
+           
 
                 <div class="container-fluid">
                     <div class="card">
@@ -176,40 +108,86 @@ else{
                                 <div>
                                     <form action="" method="">
                                         <div class="mb-3">
-                                            
+                                        <h5 class="card-title fw-semibold mb-4">Reclamations Management</h5>
                                             <div class="search-container">
+                                            
                                                 <div class="search-by">
+                                                
                                                     <label for="search_type">Search By:</label>
                                                     <select class="form-select" id="sl_search_type" name="sl_search_type">
                                                         <option value="everything">Everything</option>
                                                         <option value="id">ID</option>
-                                                        <option value="user_name">Username</option>
-                                                        <option value="email">Email</option>
+                                                        <option value="id_user">ID USER</option>
+                                                        <option value="sujet">Subject</option>
+                                                        <option value="description">Description</option>
+                                                        <option value="statut">Status</option>
+                                                        
                                                     </select>
                                                 </div>
                                                 <div class="search-input">
-                                                    <label for="search_inp">Search:</label>
-                                                    <input type="text" class="form-control" id="search_inp" name="search_inp" placeholder="Search">
+                                                    </div>
+                                                    
+                                                    <div>
+                                                        <br>
+                                                        
+                                                    </div>
+                                                    
                                                 </div>
-
-                                                <div>
-                                                    <label for="search_btn"></label> <br>
-                                                    <button type="submit" class="btn btn-primary" id="search_btn" name="search_btn" value="search">Search</button>
-                                                    <button type="submit" class="btn btn-primary" id="search_btn" name="search_btn" value="sort">Sort</button>
-                                                </div>
-
+                                                
+                                                <div id="search_error" style="color: red;"></div>
+                                                
+                                            </form>
                                             </div>
-
-                                            <div id="search_error" style="color: red;"></div>
-
+                                            <style>
+                                                .container {
+                                                    display: flex;
+                                                    align-items: center; 
+                                                }
+                                                
+                                                .container > * {
+                                                    margin-right: 10px; 
+                                                }
+                                                </style>
+                                        <div class="container">
+                                            <label for="search_inp">Search:</label>
+                                            <input type="text" class="form-control" id="search" name="search" placeholder="Search">
+                                            <button type="submit" class="btn btn-primary" id="search" name="search" value="search" >Search</button>
+                                            <button type="submit" class="btn btn-primary" id="sortAscButton" name="sortAscButton" >Sort</button>
+                                            <button type="submit" class="btn btn-primary" id="resetButton" name="resetButton" >ress</button>
                                         </div>
-                                </form>
+                                    <script>
+                                    document.getElementById("sortAscButton").addEventListener("click", function() {
+                                        // Call your sorting function here
+                                        // Example: sortTable();
+                                    });
 
-                                <table class="table text-nowrap mb-0 align-middle">
+                                    // Your existing search functionality
+                                    document.getElementById("search").addEventListener("input", function() {
+                                        var input, filter, table, tr, td, i, txtValue;
+                                        input = document.getElementById("search");
+                                        filter = input.value.toUpperCase();
+                                        table = document.getElementById("resultTable");
+                                        tr = table.getElementsByTagName("tr");
+
+                                        // Parcourt toutes les lignes et masque celles qui ne correspondent pas à la recherche
+                                        for (i = 0; i < tr.length; i++) {
+                                            td = tr[i].getElementsByTagName("td")[0]; // Colonne ID
+                                            if (td) {
+                                                txtValue = td.textContent || td.innerText;
+                                                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                                                    tr[i].style.display = "";
+                                                } else {
+                                                    tr[i].style.display = "none";
+                                                }
+                                            }
+                                        }
+                                    });
+                                </script>
+                                <table id="resultTable" class="table text-nowrap mb-0 align-middle">
                                     <thead class="text-dark fs-4">
                                         <tr>
-                                            <th class="border-bottom-0">
-                                                <h6 class="fw-semibold mb-0">ID</h6>
+                                            <th class="border-bottom-0" id="sortdate" class="sort" onclick="sortTable(0)">
+                                                <h6 class="fw-semibold mb-0" >ID</h6>
                                             </th>
                                             <th class="border-bottom-0">
                                                 <h6 class="fw-semibold mb-0">Subject</h6>
@@ -235,7 +213,7 @@ else{
                                         <!-- job rows will be dynamically added here -->
                                         <!-- Example row (replace with dynamic data from database) -->
                                         <?php
-                                            foreach ($recs as $rec) {
+                                           if(empty($recsearch)) { foreach ($recs as $rec) {
                                         ?>
                                         <tr>
                                             <td class="border-bottom-0">
@@ -253,8 +231,7 @@ else{
                                             <td class="border-bottom-0">
                                                 <?php if ($rec['statut'] == "pending request"): ?>
                                                     <h6 class="fw-semibold mb-0"><i class="fa-solid fa-circle-xmark" style="color: red;"></i></h6>
-                                                <?php elseif ($rec['statut'] == "in progress"): ?>
-                                                    <h6 class="fw-semibold mb-0"><i class="fa-solid fa-clock" style="color: yellow;"></i></h6>
+
                                                 <?php else: ?>
                                                     <h6 class="fw-semibold mb-0"><i class="fa-solid fa-circle-check" style="color: green;"></i></h6>
                                                 <?php endif; ?>
@@ -266,15 +243,60 @@ else{
                                             <td class="border-bottom-0">
                                                 <button type="button" class="btn btn-primary btn-sm me-2" onclick="window.location.href = './update_rec.php?id=<?= $rec['id']; ?>';">Update</button>
                                                 <button type="button" class="btn btn-danger btn-sm me-2" onclick="window.location.href = './delete_rec.php?id=<?= $rec['id']; ?>';">Delete</button>
+                                                <button type="button" class="btn btn-success btn-sm me-2" onclick="window.location.href = '../reponse management/reps_management.php?id=<?php echo $rec['id']; ?>&id_user=<?php echo $rec['id_user']; ?>';">answer</button>
+                                                <button type="button" class="btn btn-danger btn-sm me-2" onclick="window.location.href = './generate_pdf.php?id=<?= $rec['id']; ?>';">PDF</button>
+
                                             </td>
                                         </tr>
 
                                         <?php
                                             }
+                                        }
+                                           
+                                            else {foreach ($recsearch as $rec) {
+                                         ?>
+                                         <tr>
+                                             <td class="border-bottom-0">
+                                                 <h6 class="fw-semibold mb-0"><?= $rec['id']; ?></h6>
+                                             </td>
+                                             <td class="border-bottom-0">
+                                                 <h6 class="fw-semibold mb-0"><?= $rec['sujet']; ?></h6>
+                                             </td>
+                                             <td class="border-bottom-0">
+                                                 <h6 class="fw-semibold mb-0"><?= $rec['description']; ?></h6>
+                                             </td>
+                                             <td class="border-bottom-0">
+                                                 <h6 class="fw-semibold mb-0"><?= $rec['date_creation']; ?></h6>
+                                             </td>
+                                             <td class="border-bottom-0">
+                                                 <?php if ($rec['statut'] == "pending request"): ?>
+                                                     <h6 class="fw-semibold mb-0"><i class="fa-solid fa-circle-xmark" style="color: red;"></i></h6>
+                                                
+                                                 <?php else: ?>
+                                                     <h6 class="fw-semibold mb-0"><i class="fa-solid fa-circle-check" style="color: green;"></i></h6>
+                                                 <?php endif; ?>
+                                             </td>
+                                             <td class="border-bottom-0">
+                                                 <h6 class="fw-semibold mb-0"><?= $rec['id_user']; ?></h6>
+                                             </td>
+                                             
+                                             <td class="border-bottom-0">
+                                                 <button type="button" class="btn btn-primary btn-sm me-2" onclick="window.location.href = './update_rec.php?id=<?= $rec['id']; ?>';">Update</button>
+                                                 <button type="button" class="btn btn-danger btn-sm me-2" onclick="window.location.href = './delete_rec.php?id=<?= $rec['id']; ?>';">Delete</button>
+                                                 <button type="button" class="btn btn-success btn-sm me-2" onclick="window.location.href = '../reponse management/reps_management.php?id=<?= $rec['id']; ?>';">answer</button>
+                                                 <button type="button" class="btn btn-danger btn-sm me-2" onclick="window.location.href = './generate_pdf.php?id=<?= $rec['id']; ?>';">PDF</button>
+ 
+                                             </td>
+                                         </tr>
+                                         <?php
+                                         
+                                        }
+                                    }
+
                                         ?>
                                         <!-- Add more rows dynamically here -->
                                     </tbody>
-                                </table>
+                                
                             </div>
                         </div>
                     </div>
@@ -285,7 +307,40 @@ else{
 
         </div>
     </div>
+    </table>
+                               
+    <script>var originalRows; // Pour stocker les lignes originales du tableau
 
+function sortTable(column, ascending) {
+    var table = document.getElementById("resultTable").getElementsByTagName('tbody')[0];
+    var rows = Array.from(table.rows);
+
+    rows.sort(function(a, b) {
+        var valueA = parseInt(a.cells[column].textContent);
+        var valueB = parseInt(b.cells[column].textContent);
+        
+        return ascending ? valueA - valueB : valueB - valueA;
+    });
+
+    for (var i = 0; i < rows.length; i++) {
+        table.appendChild(rows[i]);
+    }
+}
+
+document.getElementById("sortAscButton").addEventListener("click", function() {
+    sortTable(0, true); // Tri ascendant par la colonne 'note' (index 2)
+});
+document.getElementById("resetButton").addEventListener("click", function() {
+    var table = document.getElementById("resultTable").getElementsByTagName('tbody')[0];
+    table.innerHTML = ""; // Efface le contenu du tbody
+    originalRows.forEach(function(row) {
+        table.appendChild(row);
+    });
+});
+document.addEventListener("DOMContentLoaded", function() {
+    var table = document.getElementById("resultTable").getElementsByTagName('tbody')[0];
+    originalRows = Array.from(table.rows);
+});</script>
     <script src="https://kit.fontawesome.com/86ecaa3fdb.js" crossorigin="anonymous"></script>
     <script src="../../../assets/libs/jquery/dist/jquery.min.js"></script>
     <script src="../../../assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -315,44 +370,16 @@ else{
 
     // fill forms if data exists
     // search by
-    if (isset($_GET['sl_search_type'])) {
-        // Retrieve and sanitize the error message
-        $search_by = htmlspecialchars($_GET['sl_search_type']);
-        // Inject the error message into the div element
-        echo ("<script>document.getElementById('sl_search_type').value = '$search_by';</script>");
-      }
+    
     
       // search inp
-      if (isset($_GET['search_inp'])) {
-        // Retrieve and sanitize the error message
-        $keyword = htmlspecialchars($_GET['search_inp']);
-        // Inject the error message into the div element
-        echo ("<script>document.getElementById('search_inp').value = '$keyword';</script>");
-      }
+      
   
-      // role
-      if (isset($_GET['sl_role'])) {
-        // Retrieve and sanitize the error message
-        $role = htmlspecialchars($_GET['sl_role']);
-        // Inject the error message into the div element
-        echo ("<script>document.getElementById('sl_role').value = '$role';</script>");
-      }
+     
 
-      // verified
-      if (isset($_GET['sl_verified'])) {
-        // Retrieve and sanitize the error message
-        $verified = htmlspecialchars($_GET['sl_verified']);
-        // Inject the error message into the div element
-        echo ("<script>document.getElementById('sl_verified').value = '$verified';</script>");
-      }
+     
 
-      // banned
-      if (isset($_GET['sl_banned'])) {
-        // Retrieve and sanitize the error message
-        $banned = htmlspecialchars($_GET['sl_banned']);
-        // Inject the error message into the div element
-        echo ("<script>document.getElementById('sl_banned').value = '$banned';</script>");
-      }
+    
 
   ?>
 

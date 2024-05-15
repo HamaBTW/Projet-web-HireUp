@@ -6,6 +6,16 @@
 <html class="no-js">
 <!--<![endif]-->
 
+			<?php
+				if (session_status() == PHP_SESSION_NONE) {
+					session_start();
+				}
+
+				if (isset($_SESSION['message'])) {
+					echo $_SESSION['message'];
+					unset($_SESSION['message']);
+				}
+			?>
 
 <head>
 	<title>Invenir - HR Recruiting Agency HTML Template</title>
@@ -20,7 +30,11 @@
 
 	<link rel="stylesheet" href="../../../front office assets/css/bootstrap.min.css">
 	<link rel="stylesheet" href="../../../front office assets/css/animations.css">
+	<link rel="stylesheet" type="text/css" href="../../../front office assets/css/AlertButtons.css">
 	<link rel="stylesheet" href="../../../front office assets/css/font-awesome.css">
+	<link rel="stylesheet" href="../../../View/back_office/reclamations managment/AlertButtons.css">
+
+
 	<link rel="stylesheet" href="../../../front office assets/css/main.css" class="color-switcher-link">
 	<script src="../../../front office assets/js/vendor/modernizr-2.6.2.min.js"></script>
 
@@ -569,6 +583,7 @@
 
 			</header>
 
+
 			<section class="page_title cs gradientvertical-background s-py-25">
 				<div class="container">
 					<div class="row">
@@ -598,6 +613,7 @@
 			<section class="lss-overlay s-map-light s-py-130 c-gutter-60 container-px-30">
 				<div class="container ">
 					<div class="row">
+					<div id="alertContainer"></div>
 
 						<div class="divider-30 d-none d-xl-block"></div>
 
@@ -822,15 +838,13 @@
 	<script src="../../../front office assets/js/compressed.js"></script>
 	<script src="../../../front office assets/js/main.js"></script>
 	<script src="../../../front office assets/js/switcher.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+	
 
 	<!-- Google Map Script -->
 	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?"></script>
 	<script src="../../../View/back_office/reclamations managment/recs_management_js.js">
 		
 	</script>
-
 </body>
-
-
-
 </html>
